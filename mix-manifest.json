@@ -1,0 +1,10 @@
+{
+    "/admin/css/royal-checkout-admin.css": "/admin/css/royal-checkout-admin.css",
+    "/public/css/royal-checkout-public.css": "/public/css/royal-checkout-public.css",
+    "/admin/js/select2.full.min.js": "/admin/js/select2.full.min.js",
+    "/admin/js/materialize.min.js": "/admin/js/materialize.min.js",
+    "/admin/css/select2-materialize.css": "/admin/css/select2-materialize.css",
+    "/admin/js/sweetalert2.min.js": "/admin/js/sweetalert2.min.js",
+    "/admin/css/sweetalert2.min.css": "/admin/css/sweetalert2.min.css",
+    "/admin/js/moment.min.js": "/admin/js/moment.min.js"
+}

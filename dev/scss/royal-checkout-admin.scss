@@ -1,0 +1,75 @@
+@import "~materialize-css/sass/materialize";
+@import "~select2/src/scss/core";
+
+.input-field.input-field-custom {
+  label {
+    position: relative;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    display: block;
+    line-height: 2rem;
+    margin-bottom: 1.5rem;
+  }
+  select {
+    width: 100%;
+  }
+  .select2 {
+    width: 100% !important;
+    margin-left: 0 !important;
+
+    .select2-selection--single .select2-selection__rendered {
+      padding-left: 10px !important;
+    }
+  }
+}
+.btn:hover,
+.btn:focus {
+  color: #FFF;
+}
+.product-name {
+  > div {
+    display: inline-block;
+    vertical-align: middle;
+
+    &.product-image {
+      width: 50px;
+      height: 50px;
+      margin-right: 10px;
+
+      img {
+        max-width: 100%;
+        height: auto;
+      }
+    }
+    &.input-field.has-image {
+      width: calc(100% - 60px);
+    }
+    &.input-field.no-image {
+      width: 100%;
+    }
+    label {
+      font-weight: bold;
+      color: #00b0ff !important;
+    }
+    textarea {
+      min-height: 2rem;
+      height: 2rem;
+      padding-bottom: 1.23rem;
+    }
+  }
+}
+.product-options {
+  width: 270px;
+}
+.product-qty {
+  width: 100px;
+}
+.product-price {
+  width: 150px;
+}
+.add-payment-date {
+  float: right;
+  margin-top: 20px;
+}

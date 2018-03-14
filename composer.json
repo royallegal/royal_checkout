@@ -1,0 +1,13 @@
+{
+    "name": "royallegalsolutions/royal-checkout",
+    "type": "project",
+    "require": {
+        "wixel/gump": "^1.5"
+    },
+    "authors": [
+        {
+            "name": "Ratko Šolaja",
+            "email": "ratko@toptal.com"
+        }
+    ]
+}
