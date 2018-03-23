@@ -28,6 +28,44 @@ jQuery(document).ready(function($) {
 
     }
 
+    // Init Select2 on Country and State
+    if ( $('#rc-order-billing-country').length ) {
+
+        $('#rc-order-billing-country').select2();
+        $('#rc-order-billing-state').select2();
+
+        // On Country Change
+        $(document).on('select2:select', '#rc-order-billing-country', function(event) {
+            var data = event.params.data,
+                value = data.id;
+
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    id: value,
+                    action: 'rc_ajax_get_states'
+                },
+                success: function( response ) {
+                    $('#rc-order-billing-state').empty().append( response ).trigger('change');
+                },
+                error: function( response ) {
+                    console.log( response );
+                }
+            });
+        });
+
+    }
+
+    // Toggle Billing
+    $(document).one('click', '.show-billing', function(event) {
+        event.preventDefault();
+
+        $(this).parent().parent().remove();
+        $('.billing-info').addClass('is-active');
+        $('#rc-order-billing-address, #rc-order-billing-city, #rc-order-billing-postcode, #rc-order-billing-phone').parent().find('label').addClass('active');
+    });
+
     // Choose Customer
     if ( $('#rc-order-customer-email').length ) {
         $('#rc-order-customer-email').select2({
@@ -54,8 +92,31 @@ jQuery(document).ready(function($) {
                     success: function(response) {
                         $('#rc-order-customer-first-name').val( response.first_name );
                         $('#rc-order-customer-last-name').val( response.last_name );
+                        $('#rc-order-billing-address').val( response.billing_address );
+                        $('#rc-order-billing-city').val( response.billing_city );
+                        $('#rc-order-billing-postcode').val( response.billing_postcode );
+                        $('#rc-order-billing-phone').val( response.billing_phone );
+                        $('#rc-order-billing-country').val( response.billing_country ).trigger('change');
 
-                        $('#rc-order-customer-first-name, #rc-order-customer-last-name').focus();
+                        var state = response.billing_state;
+
+                        $('#rc-order-customer-first-name, #rc-order-customer-last-name, #rc-order-billing-address, #rc-order-billing-city, #rc-order-billing-postcode, #rc-order-billing-phone').focus();
+
+                        $.ajax({
+                            url: ajaxurl,
+                            type: 'POST',
+                            data: {
+                                id: response.billing_country,
+                                action: 'rc_ajax_get_states'
+                            },
+                            success: function( response ) {
+                                $('#rc-order-billing-state').empty().append( response ).trigger('change');
+                                $('#rc-order-billing-state').val( state ).trigger('change');
+                            },
+                            error: function( response ) {
+                                console.log( response );
+                            }
+                        });
                     },
                     error: function(response) {
                         console.log(response);
@@ -102,7 +163,7 @@ jQuery(document).ready(function($) {
                 }
             },
             minimumInputLength: 3,
-            tags: true,
+            tags: false,
             allowClear: true
         });
 
@@ -569,24 +630,27 @@ jQuery(document).ready(function($) {
     $(document).on('click', '.calc', function(event) {
         event.preventDefault();
 
+        var button = $(this),
+            button_label = $(this).html();
+
+        var errors = [];
+
         // Validate Everything
         if ( ! $('#rc-order-customer-email option:selected').val() ) {
 
-            var errors = [
-                'Customer email is required.'
-            ];
+            errors.push( 'Customer email is required.' );
 
-            if ( ! $('#rc-order-customer-first-name').val() ) {
+        }
 
-                errors.push( 'Customer first name is required.' );
+        if ( ! $('#rc-order-customer-first-name').val() ) {
 
-            }
+            errors.push( 'Customer first name is required.' );
 
-            if ( ! $('#rc-order-customer-last-name').val() ) {
+        }
 
-                errors.push( 'Customer last name is required.' );
+        if ( ! $('#rc-order-customer-last-name').val() ) {
 
-            }
+            errors.push( 'Customer last name is required.' );
 
         }
 
@@ -598,22 +662,32 @@ jQuery(document).ready(function($) {
 
         if ( errors ) {
 
-            var errors_message = errors.join('<br>');
+            if ( errors.length ) {
 
-            swal({
-                type: 'error',
-                title: 'Oops...',
-                html: errors_message
-            });
+                var errors_message = errors.join('<br>');
 
-            return;
+                swal({
+                    type: 'error',
+                    title: 'Oops...',
+                    html: errors_message
+                });
+
+                return;
+
+            }
 
         }
 
         var user = {
             email: $('#rc-order-customer-email option:selected').val(),
             first_name: $('#rc-order-customer-first-name').val(),
-            last_name: $('#rc-order-customer-last-name').val()
+            last_name: $('#rc-order-customer-last-name').val(),
+            billing_country: $('#rc-order-billing-country').find(':selected').val(),
+            billing_address: $('#rc-order-billing-address').val(),
+            billing_city: $('#rc-order-billing-city').val(),
+            billing_state: $('#rc-order-billing-state').find(':selected').val(),
+            billing_postcode: $('#rc-order-billing-postcode').val(),
+            billing_phone: $('#rc-order-billing-phone').val()
         };
 
         var products = [];
@@ -664,21 +738,71 @@ jQuery(document).ready(function($) {
 
         if ( payment_options === '1' || payment_options === '2' ) {
 
+            if ( payment_options === '2' ) {
+
+                var fixed_price = 0,
+                    fixed_payment = 0;
+                $('#rc-order-products > tbody > tr').each(function(key, value) {
+                    fixed_price += Number( $(this).find('.product-total').html() );
+                });
+                $('#rc-order-payments-dates > tbody > tr').each(function(key, value) {
+                    fixed_payment += Number( $(this).find('input[name^=payment-price]').val() );
+                });
+
+                if ( fixed_price !== fixed_payment ) {
+
+                    console.log( fixed_price );
+                    console.log( fixed_payment );
+
+                    var new_price = 0;
+                    if ( fixed_price > fixed_payment ) {
+                        new_price = fixed_price - fixed_payment;
+                    }
+                    if ( fixed_payment > fixed_price ) {
+                        new_price = fixed_payment - fixed_price;
+                    }
+
+                    $('#rc-order-payments-dates > tbody > tr:last-of-type').find('input[name^=payment-price]').attr( 'value', new_price );
+
+                }
+
+            }
+
             payments.orders = {};
 
-            $('#rc-order-payments-dates > tbody > tr').each(function(key, value) {
-                var input  = $(this).find('input[name="payment-date[' + key + ']"]').pickadate(),
-                    picker = input.pickadate('picker'),
-                    date   = picker.get('select', 'yyyy-mm-dd'),
-                    price  = $(this).find('input[name="payment-price[' + key + ']"]').val();
+            if ( payment_options === '1' ) {
 
-                var item = {
-                    'order_date': date,
-                    'order_price': price
-                };
+                $('#rc-order-payments-dates > tbody > tr').each(function(key, value) {
+                    var input  = $(this).find('input[name="payment-date[' + key + ']"]').pickadate(),
+                        picker = input.pickadate('picker'),
+                        date   = picker.get('select', 'yyyy-mm-dd'),
+                        price  = $(this).find('input[name="payment-price[' + key + ']"]').val();
 
-                payments.orders[key] = item;
-            });
+                    var item = {
+                        'order_date': date,
+                        'order_price': price
+                    };
+
+                    payments.orders[key] = item;
+                });
+
+            } else {
+
+                $('#rc-order-payments-dates > tbody > tr').each(function(key, value) {
+                    var input  = $(this).find('input[name="payment-date-custom[' + key + ']"]').pickadate(),
+                        picker = input.pickadate('picker'),
+                        date   = picker.get('select', 'yyyy-mm-dd'),
+                        price  = $(this).find('input[name="payment-price-custom[' + key + ']"]').val();
+
+                    var item = {
+                        'order_date': date,
+                        'order_price': price
+                    };
+
+                    payments.orders[key] = item;
+                });
+
+            }
 
         }
 
@@ -693,12 +817,25 @@ jQuery(document).ready(function($) {
                 user: user,
                 action: 'rc_ajax_add_to_cart'
             },
+            beforeSend: function() {
+                button.attr('disabled', 'disabled');
+                button.html('Processing Order');
+            },
             success: function(response) {
                 if ( response.error === false ) {
 
+                    window.open( response.redirect, '_blank' );
 
+                    // Reset everything
+                    location.reload();
+
+                } else {
 
                 }
+            },
+            complete: function() {
+                button.removeAttr('disabled');
+                button.html(button_label);
             }
         });
 

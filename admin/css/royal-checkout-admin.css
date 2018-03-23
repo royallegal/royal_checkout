@@ -10086,3 +10086,48 @@ button.picker__today:focus, button.picker__clear:focus, button.picker__close:foc
   float: right;
   margin-top: 20px;
 }
+
+.billing-info {
+  height: 0;
+  visibility: hidden;
+  opacity: 0;
+  overflow: hidden;
+  -webkit-transition: all 0.3s ease-in-out;
+  transition: all 0.3s ease-in-out;
+}
+
+.billing-info.is-active {
+  height: auto;
+  visibility: visible;
+  opacity: 1;
+  -webkit-transition: all 0.3s ease-in-out;
+  transition: all 0.3s ease-in-out;
+}
+
+.space {
+  height: 20px;
+}
+
+label.card {
+  display: block;
+  border: 2px solid #FFF;
+  font-size: 14px;
+  line-height: 24px;
+  -webkit-transition: all 0.3s ease-in-out;
+  transition: all 0.3s ease-in-out;
+}
+
+label.card strong {
+  font-weight: bold;
+}
+
+label.card.is-checked {
+  border-color: #26a69a;
+  -webkit-transition: all 0.3s ease-in-out;
+  transition: all 0.3s ease-in-out;
+}
+
+.card {
+  max-width: 100%;
+  width: 100%;
+}

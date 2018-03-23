@@ -117,6 +117,11 @@ class Royal_Checkout {
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'vendor/autoload.php';
 
         /**
+         * File that is responsible for loading utility functions outside any class.
+         */
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/royal-checkout-functions.php';
+
+        /**
          * The class responsible for defining 'Users' part of the plugin.
          */
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-royal-checkout-users.php';
@@ -178,6 +183,7 @@ class Royal_Checkout {
 
 		// Ajax Functions
         $this->loader->add_action( 'wp_ajax_rc_ajax_get_user', $plugin_admin, 'rc_ajax_get_user' );
+        $this->loader->add_action( 'wp_ajax_rc_ajax_get_states', $plugin_admin, 'rc_ajax_get_states' );
 		$this->loader->add_action( 'wp_ajax_rc_ajax_get_products', $plugin_admin, 'rc_ajax_get_products' );
 		$this->loader->add_action( 'wp_ajax_rc_ajax_get_product', $plugin_admin, 'rc_ajax_get_product' );
 		$this->loader->add_action( 'wp_ajax_rc_ajax_add_to_cart', $plugin_admin, 'rc_ajax_add_to_cart' );

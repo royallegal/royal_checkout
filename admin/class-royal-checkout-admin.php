@@ -87,7 +87,8 @@ class Royal_Checkout_Admin {
         wp_enqueue_style( $this->plugin_name . '-material-icons', '//fonts.googleapis.com/icon?family=Material+Icons', array(), $this->version, 'all' );
 		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/royal-checkout-admin.css', array(), $this->version, 'all' );
         wp_enqueue_style( $this->plugin_name . '-materialize-select2', plugin_dir_url( __FILE__ ) . 'css/select2-materialize.css', array(), '1.0.0', 'all' );
-        wp_enqueue_style( $this->plugin_name . '-sweetalert2', plugin_dir_url( __FILE__ ) . 'css/sweetalert2.min.css', array(), '7.15.1', 'all' );
+        wp_enqueue_style( $this->plugin_name . '-sweetalert2', plugin_dir_url( __FILE__ ) . 'css/sweetalert2.min.css', array(), '7.17.0', 'all' );
+        wp_enqueue_style( $this->plugin_name . '-card', plugin_dir_url( __FILE__ ) . 'css/card.css', array(), '2.4.0', 'all' );
 
 	}
 
@@ -119,8 +120,10 @@ class Royal_Checkout_Admin {
 
         wp_enqueue_script( $this->plugin_name . '-select2', plugin_dir_url( __FILE__ ) . 'js/select2.full.min.js', array( 'jquery' ), '4.0.6-rc.1', true );
         wp_enqueue_script( $this->plugin_name . '-materialize', plugin_dir_url( __FILE__ ) . 'js/materialize.min.js', array( 'jquery' ), '0.100.2', true );
-        wp_enqueue_script( $this->plugin_name . '-sweetalert2', plugin_dir_url( __FILE__ ) . 'js/sweetalert2.min.js', array( 'jquery' ), '7.15.1', true );
+        wp_enqueue_script( $this->plugin_name . '-sweetalert2', plugin_dir_url( __FILE__ ) . 'js/sweetalert2.min.js', array( 'jquery' ), '7.17.0', true );
         wp_enqueue_script( $this->plugin_name . '-moment', plugin_dir_url( __FILE__ ) . 'js/moment.min.js', array( 'jquery' ), '2.21.0', true );
+        wp_enqueue_script( $this->plugin_name . '-card', plugin_dir_url( __FILE__ ) . 'js/jquery.card.js', array( 'jquery' ), '2.4.0', true );
+        wp_enqueue_script( $this->plugin_name . '-payment', plugin_dir_url( __FILE__ ) . 'js/payment.js', array( 'jquery' ), '2.4.0', true );
 		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/royal-checkout-admin.js', array( 'jquery' ), $this->version, true );
 
 	}
@@ -236,6 +239,39 @@ class Royal_Checkout_Admin {
     }
 
     /**
+     * AJAX : Get states.
+     *
+     * @since    1.0.0
+     * @version  1.0.0
+     */
+    public function rc_ajax_get_states() {
+
+        $data = $this->gump->sanitize( $_POST );
+
+        $this->gump->validation_rules([
+            'id' => 'required|alpha'
+        ]);
+
+        $this->gump->filter_rules([
+            'id' => 'trim|sanitize_string'
+        ]);
+
+        $data = $this->gump->run( $data );
+
+        $data = get_states( $data['id'] );
+
+        $options = '';
+        foreach ( $data as $key => $value ) {
+
+            $options .= '<option value="' . $key . '">' . $value . '</option>';
+
+        }
+
+        wp_send_json( $options );
+
+    }
+
+    /**
      * AJAX : Add products to the cart.
      *
      * Creates an order, adds products to that order and sets correct total for that order.
@@ -278,6 +314,44 @@ class Royal_Checkout_Admin {
                 $data['error'] = true;
                 wp_send_json( $data );
 
+            } else {
+
+                if ( isset( $user['billing_country'] ) && ! empty( $user['billing_country'] ) ) {
+
+                    update_user_meta( $user_id, 'billing_country', $user['billing_country'] );
+
+                }
+
+                if ( isset( $user['billing_address'] ) && ! empty( $user['billing_address'] ) ) {
+
+                    update_user_meta( $user_id, 'billing_address_1', $user['billing_address'] );
+
+                }
+
+                if ( isset( $user['billing_city'] ) && ! empty( $user['billing_city'] ) ) {
+
+                    update_user_meta( $user_id, 'billing_city', $user['billing_city'] );
+
+                }
+
+                if ( isset( $user['billing_state'] ) && ! empty( $user['billing_state'] ) ) {
+
+                    update_user_meta( $user_id, 'billing_state', $user['billing_state'] );
+
+                }
+
+                if ( isset( $user['billing_postcode'] ) && ! empty( $user['billing_postcode'] ) ) {
+
+                    update_user_meta( $user_id, 'billing_postcode', $user['billing_postcode'] );
+
+                }
+
+                if ( isset( $user['billing_phone'] ) && ! empty( $user['billing_phone'] ) ) {
+
+                    update_user_meta( $user_id, 'billing_phone', $user['billing_phone'] );
+
+                }
+
             }
 
         }
@@ -285,6 +359,42 @@ class Royal_Checkout_Admin {
         // Create new order.
         $order = new WC_Order();
         $order->set_customer_id( $user_id );
+
+        if ( isset( $user['billing_country'] ) && ! empty( $user['billing_country'] ) ) {
+
+            $order->set_billing_country( $user['billing_country'] );
+
+        }
+
+        if ( isset( $user['billing_address'] ) && ! empty( $user['billing_address'] ) ) {
+
+            $order->set_billing_address_1( $user['billing_address'] );
+
+        }
+
+        if ( isset( $user['billing_city'] ) && ! empty( $user['billing_city'] ) ) {
+
+            $order->set_billing_city( $user['billing_city'] );
+
+        }
+
+        if ( isset( $user['billing_state'] ) && ! empty( $user['billing_state'] ) ) {
+
+            $order->set_billing_state( $user['billing_state'] );
+
+        }
+
+        if ( isset( $user['billing_postcode'] ) && ! empty( $user['billing_postcode'] ) ) {
+
+            $order->set_billing_postcode( $user['billing_postcode'] );
+
+        }
+
+        if ( isset( $user['billing_phone'] ) && ! empty( $user['billing_phone'] ) ) {
+
+            $order->set_billing_phone( $user['billing_phone'] );
+
+        }
 
         $count = 0;
         // Add products to the order.
@@ -364,7 +474,7 @@ class Royal_Checkout_Admin {
             $order->save();
 
             $data['error'] = false;
-            $data['count'] = $count;
+            $data['redirect'] = $order->get_checkout_payment_url();
 
         } else {
 
@@ -410,6 +520,47 @@ class Royal_Checkout_Admin {
             }
 
             $order->set_total( $args['order']['order_price'] );
+
+            $user_id = email_exists( $args['user']['email'] );
+
+            $order->set_customer_id( $user_id );
+
+            if ( isset( $args['user']['billing_country'] ) && ! empty( $args['user']['billing_country'] ) ) {
+
+                $order->set_billing_country( $args['user']['billing_country'] );
+
+            }
+
+            if ( isset( $args['user']['billing_address'] ) && ! empty( $args['user']['billing_address'] ) ) {
+
+                $order->set_billing_address_1( $args['user']['billing_address'] );
+
+            }
+
+            if ( isset( $args['user']['billing_city'] ) && ! empty( $args['user']['billing_city'] ) ) {
+
+                $order->set_billing_city( $args['user']['billing_city'] );
+
+            }
+
+            if ( isset( $args['user']['billing_state'] ) && ! empty( $args['user']['billing_state'] ) ) {
+
+                $order->set_billing_state( $args['user']['billing_state'] );
+
+            }
+
+            if ( isset( $args['user']['billing_postcode'] ) && ! empty( $args['user']['billing_postcode'] ) ) {
+
+                $order->set_billing_postcode( $args['user']['billing_postcode'] );
+
+            }
+
+            if ( isset( $args['user']['billing_phone'] ) && ! empty( $args['user']['billing_phone'] ) ) {
+
+                $order->set_billing_phone( $args['user']['billing_phone'] );
+
+            }
+
             $order->save();
 
         }

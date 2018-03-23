@@ -73,3 +73,39 @@
   float: right;
   margin-top: 20px;
 }
+.billing-info {
+  height: 0;
+  visibility: hidden;
+  opacity: 0;
+  overflow: hidden;
+  transition: all 0.3s ease-in-out;
+
+  &.is-active {
+    height: auto;
+    visibility: visible;
+    opacity: 1;
+    transition: all 0.3s ease-in-out;
+  }
+}
+.space {
+  height: 20px;
+}
+label.card {
+  display: block;
+  border: 2px solid #FFF;
+  font-size: 14px;
+  line-height: 24px;
+  transition: all 0.3s ease-in-out;
+
+  strong {
+    font-weight: bold;
+  }
+  &.is-checked {
+    border-color: #26a69a;
+    transition: all 0.3s ease-in-out;
+  }
+}
+.card {
+  max-width: 100%;
+  width: 100%;
+}

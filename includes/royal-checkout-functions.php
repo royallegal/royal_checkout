@@ -1,0 +1,81 @@
+<?php
+	
+	function get_states( $country ) {
+
+		$states = [
+			'US' => [
+				'AL' => esc_html__( 'Alabama', 'royal-checkout' ),
+				'AK' => esc_html__( 'Alaska', 'royal-checkout' ),
+				'AZ' => esc_html__( 'Arizona', 'royal-checkout' ),
+				'AR' => esc_html__( 'Arkansas', 'royal-checkout' ),
+				'CA' => esc_html__( 'California', 'royal-checkout' ),
+				'CO' => esc_html__( 'Colorado', 'royal-checkout' ),
+				'CT' => esc_html__( 'Connecticut', 'royal-checkout' ),
+				'DE' => esc_html__( 'Delaware', 'royal-checkout' ),
+				'DC' => esc_html__( 'District Of Columbia', 'royal-checkout' ),
+				'FL' => esc_html__( 'Florida', 'royal-checkout' ),
+				'GA' => esc_html__( 'Georgia', 'royal-checkout' ),
+				'HI' => esc_html__( 'Hawaii', 'royal-checkout' ),
+				'ID' => esc_html__( 'Idaho', 'royal-checkout' ),
+				'IL' => esc_html__( 'Illinois', 'royal-checkout' ),
+				'IN' => esc_html__( 'Indiana', 'royal-checkout' ),
+				'IA' => esc_html__( 'Iowa', 'royal-checkout' ),
+				'KS' => esc_html__( 'Kansas', 'royal-checkout' ),
+				'KY' => esc_html__( 'Kentucky', 'royal-checkout' ),
+				'LA' => esc_html__( 'Louisiana', 'royal-checkout' ),
+				'ME' => esc_html__( 'Maine', 'royal-checkout' ),
+				'MD' => esc_html__( 'Maryland', 'royal-checkout' ),
+				'MA' => esc_html__( 'Massachusetts', 'royal-checkout' ),
+				'MI' => esc_html__( 'Michigan', 'royal-checkout' ),
+				'MN' => esc_html__( 'Minnesota', 'royal-checkout' ),
+				'MS' => esc_html__( 'Mississippi', 'royal-checkout' ),
+				'MO' => esc_html__( 'Missouri', 'royal-checkout' ),
+				'MT' => esc_html__( 'Montana', 'royal-checkout' ),
+				'NE' => esc_html__( 'Nebraska', 'royal-checkout' ),
+				'NV' => esc_html__( 'Nevada', 'royal-checkout' ),
+				'NH' => esc_html__( 'New Hampshire', 'royal-checkout' ),
+				'NJ' => esc_html__( 'New Jersey', 'royal-checkout' ),
+				'NM' => esc_html__( 'New Mexico', 'royal-checkout' ),
+				'NY' => esc_html__( 'New York', 'royal-checkout' ),
+				'NC' => esc_html__( 'North Carolina', 'royal-checkout' ),
+				'ND' => esc_html__( 'North Dakota', 'royal-checkout' ),
+				'OH' => esc_html__( 'Ohio', 'royal-checkout' ),
+				'OK' => esc_html__( 'Oklahoma', 'royal-checkout' ),
+				'OR' => esc_html__( 'Oregon', 'royal-checkout' ),
+				'PA' => esc_html__( 'Pennsylvania', 'royal-checkout' ),
+				'RI' => esc_html__( 'Rhode Island', 'royal-checkout' ),
+				'SC' => esc_html__( 'South Carolina', 'royal-checkout' ),
+				'SD' => esc_html__( 'South Dakota', 'royal-checkout' ),
+				'TN' => esc_html__( 'Tennessee', 'royal-checkout' ),
+				'TX' => esc_html__( 'Texas', 'royal-checkout' ),
+				'UT' => esc_html__( 'Utah', 'royal-checkout' ),
+				'VT' => esc_html__( 'Vermont', 'royal-checkout' ),
+				'VA' => esc_html__( 'Virginia', 'royal-checkout' ),
+				'WA' => esc_html__( 'Washington', 'royal-checkout' ),
+				'WV' => esc_html__( 'West Virginia', 'royal-checkout' ),
+				'WI' => esc_html__( 'Wisconsin', 'royal-checkout' ),
+				'WY' => esc_html__( 'Wyoming', 'royal-checkout' ),
+				'AA' => esc_html__( 'Armed Forces (AA)', 'royal-checkout' ),
+				'AE' => esc_html__( 'Armed Forces (AE)', 'royal-checkout' ),
+				'AP' => esc_html__( 'Armed Forces (AP)', 'royal-checkout' )
+			],
+			'CA' => [
+				'AB' => esc_html__( 'Alberta', 'royal-checkout' ),
+				'BC' => esc_html__( 'British Columbia', 'royal-checkout' ),
+				'MB' => esc_html__( 'Manitoba', 'royal-checkout' ),
+				'NB' => esc_html__( 'New Brunswick', 'royal-checkout' ),
+				'NL' => esc_html__( 'Newfoundland and Labrador', 'royal-checkout' ),
+				'NT' => esc_html__( 'Northwest Territories', 'royal-checkout' ),
+				'NS' => esc_html__( 'Nova Scotia', 'royal-checkout' ),
+				'NU' => esc_html__( 'Nunavut', 'royal-checkout' ),
+				'ON' => esc_html__( 'Ontario', 'royal-checkout' ),
+				'PE' => esc_html__( 'Prince Edward Island', 'royal-checkout' ),
+				'QC' => esc_html__( 'Quebec', 'royal-checkout' ),
+				'SK' => esc_html__( 'Saskatchewan', 'royal-checkout' ),
+				'YT' => esc_html__( 'Yukon Territory', 'royal-checkout' )
+			]
+		];
+
+		return $states[ $country ];
+
+	}

@@ -46,6 +46,20 @@ class Royal_Checkout_Users {
             'last_name'  => $author->last_name
         ];
 
+        $billing_address    = get_user_meta( $data[0]->ID, 'billing_address_1', true );
+        $billing_city       = get_user_meta( $data[0]->ID, 'billing_city', true );
+        $billing_state      = get_user_meta( $data[0]->ID, 'billing_state', true );
+        $billing_postcode   = get_user_meta( $data[0]->ID, 'billing_postcode', true );
+        $billing_country    = get_user_meta( $data[0]->ID, 'billing_country', true );
+        $billing_phone      = get_user_meta( $data[0]->ID, 'billing_phone', true );
+
+        $data_to_return['billing_address']  = $billing_address;
+        $data_to_return['billing_city']     = $billing_city;
+        $data_to_return['billing_state']    = $billing_state;
+        $data_to_return['billing_postcode'] = $billing_postcode;
+        $data_to_return['billing_country']  = $billing_country;
+        $data_to_return['billing_phone']    = $billing_phone;
+
         return $data_to_return;
 
     }
