@@ -352,6 +352,12 @@ class Royal_Checkout_Admin {
 
                 }
 
+                if ( isset( $user['shipping_country'] ) && ! empty( $user['shipping_country'] ) ) {
+
+                    update_user_meta( $user_id, 'shipping_country', $user['shipping_country'] );
+
+                }
+
             }
 
         }
@@ -393,6 +399,12 @@ class Royal_Checkout_Admin {
         if ( isset( $user['billing_phone'] ) && ! empty( $user['billing_phone'] ) ) {
 
             $order->set_billing_phone( $user['billing_phone'] );
+
+        }
+
+        if ( isset( $user['shipping_country'] ) && ! empty( $user['shipping_country'] ) ) {
+
+            $order->set_shipping_country( $user['shipping_country'] );
 
         }
 
@@ -471,6 +483,7 @@ class Royal_Checkout_Admin {
 
         if ( $count > 0 ) {
 
+            $order->set_status("unpaid");
             $order->save();
 
             $data['error'] = false;
@@ -558,6 +571,12 @@ class Royal_Checkout_Admin {
             if ( isset( $args['user']['billing_phone'] ) && ! empty( $args['user']['billing_phone'] ) ) {
 
                 $order->set_billing_phone( $args['user']['billing_phone'] );
+
+            }
+
+            if ( isset( $args['user']['shipping_country'] ) && ! empty( $args['user']['shipping_country'] ) ) {
+
+                $order->set_shipping_country( $args['user']['shipping_country'] );
 
             }
 

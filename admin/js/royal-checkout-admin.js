@@ -29,13 +29,13 @@ jQuery(document).ready(function($) {
     }
 
     // Init Select2 on Country and State
-    if ( $('#rc-order-billing-country').length ) {
+    if ( $('#rc-order-billing-country, #rc-order-shipping-country').length ) {
 
-        $('#rc-order-billing-country').select2();
-        $('#rc-order-billing-state').select2();
+        $('#rc-order-billing-country, #rc-order-shipping-country').select2();
+        $('#rc-order-billing-state, #rc-order-shipping-state').select2();
 
         // On Country Change
-        $(document).on('select2:select', '#rc-order-billing-country', function(event) {
+        $(document).on('select2:select', '#rc-order-billing-country, #rc-order-shipping-country', function(event) {
             var data = event.params.data,
                 value = data.id;
 
@@ -47,7 +47,7 @@ jQuery(document).ready(function($) {
                     action: 'rc_ajax_get_states'
                 },
                 success: function( response ) {
-                    $('#rc-order-billing-state').empty().append( response ).trigger('change');
+                    $('#rc-order-billing-state, #rc-order-shipping-state').empty().append( response ).trigger('change');
                 },
                 error: function( response ) {
                     console.log( response );
@@ -96,7 +96,7 @@ jQuery(document).ready(function($) {
                         $('#rc-order-billing-city').val( response.billing_city );
                         $('#rc-order-billing-postcode').val( response.billing_postcode );
                         $('#rc-order-billing-phone').val( response.billing_phone );
-                        $('#rc-order-billing-country').val( response.billing_country ).trigger('change');
+                        $('#rc-order-billing-country, #rc-order-shipping-country').val( response.billing_country ).trigger('change');
 
                         var state = response.billing_state;
 
@@ -110,8 +110,8 @@ jQuery(document).ready(function($) {
                                 action: 'rc_ajax_get_states'
                             },
                             success: function( response ) {
-                                $('#rc-order-billing-state').empty().append( response ).trigger('change');
-                                $('#rc-order-billing-state').val( state ).trigger('change');
+                                $('#rc-order-billing-state, #rc-order-shipping-state').empty().append( response ).trigger('change');
+                                $('#rc-order-billing-state, #rc-order-shipping-state').val( state ).trigger('change');
                             },
                             error: function( response ) {
                                 console.log( response );
@@ -199,7 +199,7 @@ jQuery(document).ready(function($) {
 
                         var product_html = '<tr data-product-type="' + response.type + '" data-product-id="' + response.id + '"><td><a href="#" class="remove-product">X</a></td>';
                         product_html += '<td class="product-name">';
-                        product_html += '<div class="input-field no-image"><textarea name="product-note[' + rows + ']" placeholder="Add note" class="materialize-textarea"></textarea><label>' + response.name + '</label></div>';
+                        product_html += '<div class="input-field no-image"><textarea style="padding-bottom:0 !important;" name="product-note[' + rows + ']" placeholder="Add note" class="materialize-textarea"></textarea><label>' + response.name + '</label></div>';
                         product_html += '</td>';
                         product_html += '<td class="product-options">';
                         if ( response.hasOwnProperty( 'variables' ) ) {
@@ -298,6 +298,181 @@ jQuery(document).ready(function($) {
             minimumResultsForSearch: Infinity
         });
 
+
+
+$("#rc-oder-same-for-shipping").on("change", function() {
+    if(this.checked) {
+        $("#shipping_form :input").attr("disabled", true);
+    } else {
+        $("#shipping_form :input").attr("disabled", false);
+    }
+});
+
+
+$("#add-payment").on('click', function(event) {
+    event.preventDefault();
+
+    $('#rc-order-payments-dates tbody').empty();
+    $('#rc-order-payments-dates').parent().addClass('hide');
+
+    // Check if there are any products in the cart.
+    if ($('#rc-order-products tbody tr').length) {
+
+        // Get all non subscription products.
+        var regular_products = 0;
+        $('#rc-order-products tbody tr:not([data-product-type*="subscription"])').each(function() {
+            regular_products = Number(regular_products) + Number($(this).find('.product-total').html());
+        });
+
+        // Get all subscription products.
+        var subscription_products = 0;
+        $('#rc-order-products tbody tr[data-product-type*="subscription"]').each(function() {
+            subscription_products = Number(subscription_products) + Number($(this).find('.product-total').html());
+        });
+
+
+        var monthly_or_number_html = '<div class="input-field">';
+        monthly_or_number_html += '<input type="number" id="downpayment" name="downpayment">';
+        monthly_or_number_html += '<label for="downpayment">First Payment</label>';
+        monthly_or_number_html += '</div>';
+        monthly_or_number_html += '<div class="input-field">';
+        monthly_or_number_html += '<input type="number" id="monthly-price" name="monthly-price">';
+        monthly_or_number_html += '<label for="monthly-price">Monthly Price</label>';
+        monthly_or_number_html += '</div>';
+        //monthly_or_number_html += '<p>OR</p>';
+        //monthly_or_number_html += '<div class="input-field">';
+        //monthly_or_number_html += '<input type="number" id="number-of-months" name="number-of-months" step="1">';
+        //monthly_or_number_html += '<label for="number-of-months">Number of Months</label>';
+        //monthly_or_number_html += '</div>';
+
+        swal({
+            title: 'Payment Plan',
+            type: 'info',
+            html: monthly_or_number_html,
+            preConfirm: function() {
+                var downpayment = $('#downpayment').val(),
+                    monthly = $('#monthly-price').val(),
+                    months = $('#number-of-months').val(),
+                    errors = '';
+
+                // Downpayment is required.
+                if (!downpayment) {
+
+                    errors += 'First Payment can\'t be empty.<br><br>';
+
+                }
+
+                // Either monthly price or number of months must be filled.
+                if (!monthly && !months) {
+
+                    errors += 'Please enter the monthly price.';
+
+                }
+
+                // Display Errors
+                if (errors) {
+
+                    swal.showValidationError(errors);
+
+                    setTimeout(function() {
+                        swal.resetValidationError();
+                    }, 5000);
+
+                } else {
+
+                    // Get total
+                    var total = regular_products - Number(downpayment),
+                        payments = [],
+                        first_payment = Number(downpayment) + subscription_products;
+
+                    // Split payments depending on filled option above.
+                    if (monthly) {
+
+                        payments = chunkize(total, monthly);
+
+                        payments.unshift(first_payment);
+
+                    }
+
+                    if (months) {
+
+                        var payment = total / months;
+
+                        for (var i = 0; i < months; i++) {
+
+                            if (i === months - 1) {
+                                payments.push(total - sum_array(payments));
+                            } else {
+                                payments.push(Math.trunc(payment));
+                            }
+
+                        }
+
+                        payments.unshift(first_payment);
+
+                    }
+
+                    // Append Payments
+                    var payments_html = '';
+                    $.each(payments, function(key, value) {
+                        payments_html += '<tr>';
+                        payments_html += '<td><a href="#" class="remove-payment">X</a></td>';
+                        payments_html += '<td>';
+                        payments_html += '<div class="input-field"><input type="text" class="datepicker" name="payment-date[' + key + ']" disabled></div>';
+                        payments_html += '</td>';
+                        payments_html += '<td>';
+                        payments_html += '<div class="input-field"><input type="number" name="payment-price[' + key + ']" value="' + value + '" disabled></div>';
+                        payments_html += '</td>';
+                        payments_html += '</tr>';
+                    });
+
+                    $('#rc-order-payments-dates tbody').append(payments_html);
+
+                    // Initialize every datepicker and set the date.
+                    $.each(payments, function(key, value) {
+
+                        var date = '';
+
+                        if (key === 0) {
+
+                            date = moment().format('MM/DD/YYYY');
+
+                        } else {
+
+                            date = moment().add(key, 'months').format('MM/DD/YYYY');
+
+                        }
+
+                        $('.datepicker[name="payment-date[' + key + ']"]').pickadate({
+                            selectMonths: true,
+                            selectYears: 2,
+                            today: 'Today',
+                            clear: 'Clear',
+                            close: 'Ok',
+                            closeOnSelect: false
+                        });
+
+                        $('.datepicker[name="payment-date[' + key + ']"]').pickadate('picker').set('select', date, {
+                            format: 'mm/dd/yyyy'
+                        }).trigger('change');
+                    });
+                    $('#rc-order-payments-dates').parent().removeClass('hide');
+                }
+            }
+        });
+    } else {
+        swal({
+            type: 'error',
+            title: 'Oops...',
+            html: 'You need to select at least 1 product'
+        });
+    }
+});
+
+
+
+
+
         // On custom payment type, show dates and amounts.
         $('#rc-order-payment-type').on('select2:select', function(event) {
             event.preventDefault();
@@ -330,20 +505,20 @@ jQuery(document).ready(function($) {
 
                         var monthly_or_number_html = '<div class="input-field">';
                             monthly_or_number_html += '<input type="number" id="downpayment" name="downpayment">';
-                            monthly_or_number_html += '<label for="downpayment">Downpayment</label>';
+                            monthly_or_number_html += '<label for="downpayment">First Payment</label>';
                             monthly_or_number_html += '</div>';
                             monthly_or_number_html += '<div class="input-field">';
                             monthly_or_number_html += '<input type="number" id="monthly-price" name="monthly-price">';
                             monthly_or_number_html += '<label for="monthly-price">Monthly Price</label>';
                             monthly_or_number_html += '</div>';
-                            monthly_or_number_html += '<p>OR</p>';
-                            monthly_or_number_html += '<div class="input-field">';
-                            monthly_or_number_html += '<input type="number" id="number-of-months" name="number-of-months" step="1">';
-                            monthly_or_number_html += '<label for="number-of-months">Number of Months</label>';
-                            monthly_or_number_html += '</div>';
+                            //monthly_or_number_html += '<p>OR</p>';
+                            //monthly_or_number_html += '<div class="input-field">';
+                            //monthly_or_number_html += '<input type="number" id="number-of-months" name="number-of-months" step="1">';
+                            //monthly_or_number_html += '<label for="number-of-months">Number of Months</label>';
+                            //monthly_or_number_html += '</div>';
 
                         swal({
-                            title: 'Additional Monthly Info',
+                            title: 'Payment Plan',
                             type: 'info',
                             html: monthly_or_number_html,
                             preConfirm: function() {
@@ -420,7 +595,7 @@ jQuery(document).ready(function($) {
                                     var payments_html = '';
                                     $.each(payments, function(key, value) {
                                         payments_html += '<tr>';
-                                        payments_html += '<td></td>';
+                                        payments_html += '<td><a href="#" class="remove-payment">X</a></td>';
                                         payments_html += '<td>';
                                         payments_html += '<div class="input-field"><input type="text" class="datepicker" name="payment-date[' + key + ']" disabled></div>';
                                         payments_html += '</td>';
@@ -687,7 +862,13 @@ jQuery(document).ready(function($) {
             billing_city: $('#rc-order-billing-city').val(),
             billing_state: $('#rc-order-billing-state').find(':selected').val(),
             billing_postcode: $('#rc-order-billing-postcode').val(),
-            billing_phone: $('#rc-order-billing-phone').val()
+            billing_phone: $('#rc-order-billing-phone').val(),
+            shipping_country: $('#rc-order-shipping-country').find(':selected').val(),
+            shipping_address: $('#rc-order-shipping-address').val(),
+            shipping_city: $('#rc-order-shipping-city').val(),
+            shipping_state: $('#rc-order-shipping-state').find(':selected').val(),
+            shipping_postcode: $('#rc-order-shipping-postcode').val(),
+            shipping_phone: $('#rc-order-shipping-phone').val()
         };
 
         var products = [];
@@ -726,15 +907,15 @@ jQuery(document).ready(function($) {
             payments = {},
             payment_option = '';
 
-        if ( payment_options === '0' ) {
+        /*if ( payment_options === '0' ) {
             payment_option = 'full';
         }
-        if ( payment_options === '1' ) {
+        if ( payment_options === '1' ) { */
             payment_option = 'monthly';
-        }
+        /*}
         if ( payment_options === '2' ) {
             payment_option = 'custom';
-        }
+        }*/
 
         if ( payment_options === '1' || payment_options === '2' ) {
 
@@ -823,17 +1004,13 @@ jQuery(document).ready(function($) {
             },
             success: function(response) {
                 if ( response.error === false ) {
-
-                    window.open( response.redirect, '_blank' );
-
-                    // Reset everything
-                    location.reload();
-
+                    // Redirect and go to checkout
+                    window.location.replace(response.redirect);
                 } else {
 
                 }
             },
-            complete: function() {
+            complete: function(response) {
                 button.removeAttr('disabled');
                 button.html(button_label);
             }
