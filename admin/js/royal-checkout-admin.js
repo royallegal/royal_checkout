@@ -16,10 +16,14 @@ jQuery(document).ready(function($) {
 
     }
 
+    // Sum numbers
     function add(a, b) {
+
         return Number( a ) + Number( b );
+
     }
 
+    // Sum array
     function sum_array( array ) {
 
         var result = array.reduce(add, 0);
@@ -28,13 +32,33 @@ jQuery(document).ready(function($) {
 
     }
 
+    // Toggle text
+    $.fn.extend({
+        toggleText: function(a, b) {
+            return this.text(this.text() == b ? a : b);
+        }
+    });
+
+    // Calculate Total
+    function calc_total() {
+
+        var total = 0;
+
+        $('#rc-order-products > tbody > tr').each(function() {
+            total = total + Number( $(this).find('.product-total').html() );
+        });
+
+        $('#cart-total').attr('value', total);
+
+    }
+
     // Init Select2 on Country and State
     if ( $('#rc-order-billing-country').length ) {
 
-        $('#rc-order-billing-country').select2();
-        $('#rc-order-billing-state').select2();
+        $('#rc-order-billing-country, #rc-order-shipping-country').select2();
+        $('#rc-order-billing-state, #rc-order-shipping-state').select2();
 
-        // On Country Change
+        // On Country Change - Billing
         $(document).on('select2:select', '#rc-order-billing-country', function(event) {
             var data = event.params.data,
                 value = data.id;
@@ -55,15 +79,40 @@ jQuery(document).ready(function($) {
             });
         });
 
+        // On Country Change - Shipping
+        $(document).on('select2:select', '#rc-order-shipping-country', function(event) {
+            var data = event.params.data,
+                value = data.id;
+
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    id: value,
+                    action: 'rc_ajax_get_states'
+                },
+                success: function( response ) {
+                    $('#rc-order-shipping-state').empty().append( response ).trigger('change');
+                },
+                error: function( response ) {
+                    console.log( response );
+                }
+            });
+        });
+
     }
 
     // Toggle Billing
-    $(document).one('click', '.show-billing', function(event) {
+    $(document).on('click', '.show-billing', function(event) {
         event.preventDefault();
 
-        $(this).parent().parent().remove();
-        $('.billing-info').addClass('is-active');
-        $('#rc-order-billing-address, #rc-order-billing-city, #rc-order-billing-postcode, #rc-order-billing-phone').parent().find('label').addClass('active');
+        $(this).toggleText( 'Show Billing / Shipping', 'Hide Billing / Shipping' );
+
+        $('.billing-info').toggleClass('is-active');
+
+        $('.tabs').tabs();
+
+        $('#rc-order-billing-address, #rc-order-billing-city, #rc-order-billing-postcode, #rc-order-billing-phone').parent().find('label').toggleClass('active');
     });
 
     // Choose Customer
@@ -98,7 +147,14 @@ jQuery(document).ready(function($) {
                         $('#rc-order-billing-phone').val( response.billing_phone );
                         $('#rc-order-billing-country').val( response.billing_country ).trigger('change');
 
-                        var state = response.billing_state;
+                        $('#rc-order-shipping-address').val( response.shipping_address );
+                        $('#rc-order-shipping-city').val( response.shipping_city );
+                        $('#rc-order-shipping-postcode').val( response.shipping_postcode );
+                        $('#rc-order-shipping-phone').val( response.shipping_phone );
+                        $('#rc-order-shipping-country').val( response.shipping_country ).trigger('change');
+
+                        var billing_state = response.billing_state,
+                            shipping_state = response.shipping_state;
 
                         $('#rc-order-customer-first-name, #rc-order-customer-last-name, #rc-order-billing-address, #rc-order-billing-city, #rc-order-billing-postcode, #rc-order-billing-phone').focus();
 
@@ -111,7 +167,10 @@ jQuery(document).ready(function($) {
                             },
                             success: function( response ) {
                                 $('#rc-order-billing-state').empty().append( response ).trigger('change');
-                                $('#rc-order-billing-state').val( state ).trigger('change');
+                                $('#rc-order-billing-state').val( billing_state ).trigger('change');
+
+                                $('#rc-order-shipping-state').empty().append( response ).trigger('change');
+                                $('#rc-order-shipping-state').val( shipping_state ).trigger('change');
                             },
                             error: function( response ) {
                                 console.log( response );
@@ -224,6 +283,8 @@ jQuery(document).ready(function($) {
                         $('select.product-options-select').select2({
                             minimumResultsForSearch: Infinity
                         });
+
+                        calc_total();
                     },
                     error: function(response) {
                         console.log(response);
@@ -250,6 +311,8 @@ jQuery(document).ready(function($) {
                 });
 
             }
+
+            calc_total();
         });
 
         // On product variation select, update price.
@@ -265,6 +328,8 @@ jQuery(document).ready(function($) {
             parent_row.find('.product-price input').attr( 'value', price );
             parent_row.find('.product-total').html( price_to_show );
 
+            calc_total();
+
         });
 
         // On product quantity change, update total.
@@ -278,6 +343,8 @@ jQuery(document).ready(function($) {
 
             $(this).attr( 'value', qty );
             parent_row.find('.product-total').html( price_to_show );
+
+            calc_total();
         });
 
         // On product price change, update total.
@@ -291,298 +358,148 @@ jQuery(document).ready(function($) {
 
             $(this).attr( 'value', price );
             parent_row.find('.product-total').html( price_to_show );
+
+            calc_total();
         });
 
-        // Init Payment Type
-        $('#rc-order-payment-type').select2({
-            minimumResultsForSearch: Infinity
-        });
-
-        // On custom payment type, show dates and amounts.
-        $('#rc-order-payment-type').on('select2:select', function(event) {
+        // On Add Payment, open up a modal.
+        $(document).on('click', '.add-payment', function(event) {
             event.preventDefault();
 
-            $('#rc-order-payments-dates tbody').empty();
-            $('#rc-order-payments-dates').parent().addClass('hide');
+            // Check if there are any products in the cart.
+            if ( $('#rc-order-products tbody tr').length ) {
 
-            var data = event.params.data;
-
-            // If Custom or Monthly
-            if ( data.id === '1' || data.id === '2' ) {
                 
-                // Check if there are any products in the cart.
-                if ( $('#rc-order-products tbody tr').length ) {
+                // Get all non subscription products.
+                var regular_products = 0;
+                $('#rc-order-products tbody tr:not([data-product-type*="subscription"])').each(function() {
+                    regular_products = Number( regular_products ) + Number( $(this).find('.product-total').html() );
+                });
 
-                    // Get all non subscription products.
-                    var regular_products = 0;
-                    $('#rc-order-products tbody tr:not([data-product-type*="subscription"])').each(function() {
-                        regular_products = Number( regular_products ) + Number( $(this).find('.product-total').html() );
-                    });
+                // Get all subscription products.
+                var subscription_products = 0;
+                $('#rc-order-products tbody tr[data-product-type*="subscription"]').each(function() {
+                    subscription_products = Number( subscription_products ) + Number( $(this).find('.product-total').html() );
+                });
 
-                    // Get all subscription products.
-                    var subscription_products = 0;
-                    $('#rc-order-products tbody tr[data-product-type*="subscription"]').each(function() {
-                        subscription_products = Number( subscription_products ) + Number( $(this).find('.product-total').html() );
-                    });
+                var swal_payments_html = '<div class="input-field">';
+                    swal_payments_html += '<input type="number" id="first-payment" name="first-payment">';
+                    swal_payments_html += '<label for="first-payment">First Payment</label>';
+                    swal_payments_html += '</div>';
+                    swal_payments_html += '<div class="input-field">';
+                    swal_payments_html += '<input type="number" id="monthly-price" name="monthly-price" step="1">';
+                    swal_payments_html += '<label for="monthly-price">Monthly Price</label>';
+                    swal_payments_html += '</div>';
 
-                    if ( data.id === '1' ) {
-                        // If Monthly
+                    swal({
+                        title: 'Payment Plan',
+                        html: swal_payments_html,
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        preConfirm: function() {
+                            var first_payment  = $('#first-payment').val(),
+                                monthly_price  = $('#monthly-price').val(),
+                                errors       = '';
 
-                        var monthly_or_number_html = '<div class="input-field">';
-                            monthly_or_number_html += '<input type="number" id="downpayment" name="downpayment">';
-                            monthly_or_number_html += '<label for="downpayment">Downpayment</label>';
-                            monthly_or_number_html += '</div>';
-                            monthly_or_number_html += '<div class="input-field">';
-                            monthly_or_number_html += '<input type="number" id="monthly-price" name="monthly-price">';
-                            monthly_or_number_html += '<label for="monthly-price">Monthly Price</label>';
-                            monthly_or_number_html += '</div>';
-                            monthly_or_number_html += '<p>OR</p>';
-                            monthly_or_number_html += '<div class="input-field">';
-                            monthly_or_number_html += '<input type="number" id="number-of-months" name="number-of-months" step="1">';
-                            monthly_or_number_html += '<label for="number-of-months">Number of Months</label>';
-                            monthly_or_number_html += '</div>';
+                            // Monthly Price is required.
+                            if ( ! monthly_price ) {
 
-                        swal({
-                            title: 'Additional Monthly Info',
-                            type: 'info',
-                            html: monthly_or_number_html,
-                            preConfirm: function() {
-                                var downpayment = $('#downpayment').val(),
-                                    monthly     = $('#monthly-price').val(),
-                                    months      = $('#number-of-months').val(),
-                                    errors      = '';
+                                errors += 'Monthly price can\'t be empty.';
 
-                                // Downpayment is required.
-                                if ( ! downpayment ) {
+                            }
 
-                                    errors += 'Downpayment can\'t be empty for "Monthly" option.<br><br>';
+                            // Display Errors
+                            if ( errors ) {
 
-                                }
+                                swal.showValidationError( errors );
 
-                                // Either monthly price or number of months must be filled.
-                                if ( ! monthly && ! months ) {
+                                setTimeout(function() {
+                                    swal.resetValidationError();
+                                }, 5000);
 
-                                    errors += 'Please enter either monthly price or number of months.';
+                            } else {
 
-                                }
+                                $('#rc-order-payments-dates tbody').empty();
 
-                                // Only monthly price or number of months can be filled.
-                                if ( monthly && months ) {
+                                var payments = [];
 
-                                    errors += 'Please enter either monthly price or number of months.';
+                                if ( first_payment.length ) {
 
-                                }
+                                    $('#is-first-payment-defined').attr('value', 'true');
+                                    $('#is-first-payment-defined-value').attr('value', first_payment);
 
-                                // Display Errors
-                                if ( errors ) {
+                                    var first_payment_total = Number( first_payment ) + subscription_products,
+                                        rest_total          = regular_products - Number( first_payment );
 
-                                    swal.showValidationError( errors );
-
-                                    setTimeout(function() {
-                                        swal.resetValidationError();
-                                    }, 5000);
+                                    payments = chunkize( rest_total, monthly_price );
+                                    payments.unshift( first_payment_total );
 
                                 } else {
 
-                                    // Get total
-                                    var total = regular_products - Number( downpayment ),
-                                        payments = [],
-                                        first_payment = Number( downpayment ) + subscription_products;
-
-                                    // Split payments depending on filled option above.
-                                    if ( monthly ) {
-
-                                        payments = chunkize( total, monthly );
-
-                                        payments.unshift( first_payment );
-
-                                    }
-
-                                    if ( months ) {
-
-                                        var payment = total / months;
-
-                                        for ( var i = 0; i < months; i++ ) {
-
-                                            if ( i === months - 1 ) {
-                                                payments.push( total - sum_array( payments ) );
-                                            } else {
-                                                payments.push( Math.trunc( payment ) );
-                                            }
-
-                                        }
-
-                                        payments.unshift( first_payment );
-
-                                    }
-
-                                    // Append Payments
-                                    var payments_html = '';
-                                    $.each(payments, function(key, value) {
-                                        payments_html += '<tr>';
-                                        payments_html += '<td></td>';
-                                        payments_html += '<td>';
-                                        payments_html += '<div class="input-field"><input type="text" class="datepicker" name="payment-date[' + key + ']" disabled></div>';
-                                        payments_html += '</td>';
-                                        payments_html += '<td>';
-                                        payments_html += '<div class="input-field"><input type="number" name="payment-price[' + key + ']" value="' + value + '" disabled></div>';
-                                        payments_html += '</td>';
-                                        payments_html += '</tr>';
-                                    });
-
-                                    $('#rc-order-payments-dates tbody').append( payments_html );
-
-                                    // Initialize every datepicker and set the date.
-                                    $.each(payments, function(key, value) {
-
-                                        var date = '';
-
-                                        if ( key === 0 ) {
-
-                                            date = moment().format('MM/DD/YYYY');
-
-                                        } else {
-
-                                            date = moment().add(key, 'months').format('MM/DD/YYYY');
-
-                                        }
-
-                                        $('.datepicker[name="payment-date[' + key + ']"]').pickadate({
-                                            selectMonths: true,
-                                            selectYears: 2,
-                                            today: 'Today',
-                                            clear: 'Clear',
-                                            close: 'Ok',
-                                            closeOnSelect: false
-                                        });
-
-                                        $('.datepicker[name="payment-date[' + key + ']"]').pickadate('picker').set('select', date, { format: 'mm/dd/yyyy' }).trigger('change');
-                                    });
+                                    payments = chunkize( regular_products, monthly_price );
+                                    payments[0] = Number( payments[0] ) + subscription_products;
 
                                 }
+
+                                // Append Payments
+                                var payments_html = '';
+                                $.each(payments, function(key, value) {
+                                    payments_html += '<tr>';
+                                    payments_html += '<td>';
+                                    payments_html += '<div class="input-field"><input type="text" class="datepicker payment-date-custom" name="payment-date-custom[' + key + ']"></div>';
+                                    payments_html += '</td>';
+                                    payments_html += '<td>';
+                                    payments_html += '<div class="input-field"><input type="number" class="payment-price-custom" name="payment-price-custom[' + key + ']" value="' + value + '"></div>';
+                                    payments_html += '</td>';
+                                    payments_html += '<td><a href="#" class="btn-floating btn-large waves-effect waves-light red remove-payment"><i class="material-icons">delete_forever</i></a></td>';
+                                    payments_html += '</tr>';
+                                });
+
+                                $('#rc-order-payments-dates tbody').append( payments_html );
+
+                                // Initialize every datepicker and set the date.
+                                $.each(payments, function(key, value) {
+
+                                    var date = '';
+
+                                    if ( key === 0 ) {
+
+                                        date = moment().format('MM/DD/YYYY');
+
+                                    } else {
+
+                                        date = moment().add(key, 'months').format('MM/DD/YYYY');
+
+                                    }
+
+                                    $('.datepicker[name="payment-date-custom[' + key + ']"]').pickadate({
+                                        selectMonths: true,
+                                        selectYears: 2,
+                                        today: 'Today',
+                                        clear: 'Clear',
+                                        close: 'Ok',
+                                        closeOnSelect: false
+                                    });
+
+                                    $('.datepicker[name="payment-date-custom[' + key + ']"]').pickadate('picker').set('select', date, { format: 'mm/dd/yyyy' }).trigger('change');
+                                });
+
                             }
-                        });
-
-                    } else {
-                        // If Custom
-
-                        // Show Button to Add
-                        $('.add-payment-date').removeClass('hide');
-
-                        var numer_of_payments = '<div class="input-field">';
-                        numer_of_payments += '<input type="number" id="downpayment" name="downpayment">';
-                        numer_of_payments += '<label for="downpayment">Downpayment</label>';
-                        numer_of_payments += '</div>';
-                        numer_of_payments += '<div class="input-field">';
-                        numer_of_payments += '<input type="number" id="number-of-payments" name="number-of-payments" step="1">';
-                        numer_of_payments += '<label for="number-of-payments">Number of Payments</label>';
-                        numer_of_payments += '</div>';
-
-                        swal({
-                            title: 'Additional Custom Info',
-                            type: 'info',
-                            html: numer_of_payments,
-                            preConfirm: function() {
-                                var downpayment  = $('#downpayment').val(),
-                                    num_payments = $('#number-of-payments').val(),
-                                    errors       = '';
-
-                                // Downpayment is required.
-                                if ( ! downpayment ) {
-
-                                    errors += 'Downpayment can\'t be empty for "Monthly" option.<br><br>';
-
-                                }
-
-                                // Number of months is required.
-                                if ( ! num_payments ) {
-
-                                    errors += 'Number of payments can\'t be empty.';
-
-                                }
-
-                                // Display Errors
-                                if ( errors ) {
-
-                                    swal.showValidationError( errors );
-
-                                    setTimeout(function() {
-                                        swal.resetValidationError();
-                                    }, 5000);
-
-                                } else {
-
-                                    // Get total
-                                    var total = regular_products - Number( downpayment ),
-                                        payments = [],
-                                        first_payment = Number( downpayment ) + subscription_products;
-
-                                    var payment = total / num_payments;
-
-                                    for ( var i = 0; i < num_payments; i++ ) {
-
-                                        if ( i === num_payments - 1 ) {
-                                            payments.push( total - sum_array( payments ) );
-                                        } else {
-                                            payments.push( Math.trunc( payment ) );
-                                        }
-
-                                    }
-
-                                    payments.unshift( first_payment );
-
-                                    // Append Payments
-                                    var payments_html = '';
-                                    $.each(payments, function(key, value) {
-                                        payments_html += '<tr>';
-                                        payments_html += '<td><a href="#" class="remove-payment">X</a></td>';
-                                        payments_html += '<td>';
-                                        payments_html += '<div class="input-field"><input type="text" class="datepicker payment-date-custom" name="payment-date-custom[' + key + ']"></div>';
-                                        payments_html += '</td>';
-                                        payments_html += '<td>';
-                                        payments_html += '<div class="input-field"><input type="number" class="payment-price-custom" name="payment-price-custom[' + key + ']" value="' + value + '"></div>';
-                                        payments_html += '</td>';
-                                        payments_html += '</tr>';
-                                    });
-
-                                    $('#rc-order-payments-dates tbody').append( payments_html );
-
-                                    // Initialize every datepicker and set the date.
-                                    $.each(payments, function(key, value) {
-
-                                        var date = '';
-
-                                        if ( key === 0 ) {
-
-                                            date = moment().format('MM/DD/YYYY');
-
-                                        } else {
-
-                                            date = moment().add(key, 'months').format('MM/DD/YYYY');
-
-                                        }
-
-                                        $('.datepicker[name="payment-date-custom[' + key + ']"]').pickadate({
-                                            selectMonths: true,
-                                            selectYears: 2,
-                                            today: 'Today',
-                                            clear: 'Clear',
-                                            close: 'Ok',
-                                            closeOnSelect: false
-                                        });
-
-                                        $('.datepicker[name="payment-date-custom[' + key + ']"]').pickadate('picker').set('select', date, { format: 'mm/dd/yyyy' }).trigger('change');
-                                    });
-
-                                }
-                            }
-                        });
-
-                    }
+                        }
+                    });
 
                     $('#rc-order-payments-dates').parent().removeClass('hide');
 
-                }
+
+            } else {
+
+                swal({
+                    title: 'Error',
+                    type: 'error',
+                    text: 'You don\'t have any products added. Please add some products and then you can add payments.'
+                });
+
+                return;
 
             }
         });
@@ -594,11 +511,33 @@ jQuery(document).ready(function($) {
 
         $(this).parent().parent().remove();
 
+        var number_of_payments = 0;
+
         // Fix index(es) on other products in the "cart".
         $('#rc-order-payments-dates > tbody > tr').each(function( index ) {
             $(this).find('input.payment-date-custom').attr('name', 'payment-date-custom[' + index + ']');
             $(this).find('input.payment-price-custom').attr('name', 'payment-price-custom[' + index + ']');
+
+            number_of_payments = number_of_payments + 1;
         });
+
+        var payment = 0;
+
+        // Update payments.
+        if ( $('#is-first-payment-defined').val() === 'false' ) {
+
+            payment = Number( $('#cart-total').val() ) / number_of_payments;
+
+            $('#rc-order-payments-dates > tbody > tr input.payment-price-custom').attr('value', payment );
+
+        } else {
+
+            payment = ( Number( $('#cart-total').val() ) - Number( $('#is-first-payment-defined-value').val() ) ) / ( number_of_payments - 1 );
+
+            $('#rc-order-payments-dates > tbody > tr input.payment-price-custom').attr('value', payment );
+            $('#rc-order-payments-dates > tbody > tr:first-of-type input.payment-price-custom').attr('value', $('#is-first-payment-defined-value').val() );
+
+        }
     });
 
     $(document).on('click', '.add-payment-date', function(event) {

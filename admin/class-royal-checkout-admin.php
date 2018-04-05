@@ -88,7 +88,6 @@ class Royal_Checkout_Admin {
 		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/royal-checkout-admin.css', array(), $this->version, 'all' );
         wp_enqueue_style( $this->plugin_name . '-materialize-select2', plugin_dir_url( __FILE__ ) . 'css/select2-materialize.css', array(), '1.0.0', 'all' );
         wp_enqueue_style( $this->plugin_name . '-sweetalert2', plugin_dir_url( __FILE__ ) . 'css/sweetalert2.min.css', array(), '7.17.0', 'all' );
-        wp_enqueue_style( $this->plugin_name . '-card', plugin_dir_url( __FILE__ ) . 'css/card.css', array(), '2.4.0', 'all' );
 
 	}
 
@@ -122,8 +121,6 @@ class Royal_Checkout_Admin {
         wp_enqueue_script( $this->plugin_name . '-materialize', plugin_dir_url( __FILE__ ) . 'js/materialize.min.js', array( 'jquery' ), '0.100.2', true );
         wp_enqueue_script( $this->plugin_name . '-sweetalert2', plugin_dir_url( __FILE__ ) . 'js/sweetalert2.min.js', array( 'jquery' ), '7.17.0', true );
         wp_enqueue_script( $this->plugin_name . '-moment', plugin_dir_url( __FILE__ ) . 'js/moment.min.js', array( 'jquery' ), '2.21.0', true );
-        wp_enqueue_script( $this->plugin_name . '-card', plugin_dir_url( __FILE__ ) . 'js/jquery.card.js', array( 'jquery' ), '2.4.0', true );
-        wp_enqueue_script( $this->plugin_name . '-payment', plugin_dir_url( __FILE__ ) . 'js/payment.js', array( 'jquery' ), '2.4.0', true );
 		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/royal-checkout-admin.js', array( 'jquery' ), $this->version, true );
 
 	}
