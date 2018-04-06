@@ -200,7 +200,7 @@
             </div>
             <div class="row">
                 <div class="col s12">
-                    <button class="waves-effect waves-light btn calc"><?php esc_html_e( 'Add Order', 'royal-checkout' ); ?></button>
+                    <button class="waves-effect waves-light btn add-order"><?php esc_html_e( 'Add Order', 'royal-checkout' ); ?></button>
                     <button class="waves-effect waves-light btn deep-purple darken-4 add-payment"><?php esc_html_e( 'Add Payment', 'royal-checkout' ); ?></button>
                 </div>
             </div>

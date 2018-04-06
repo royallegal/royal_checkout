@@ -1,6 +1,8 @@
 jQuery(document).ready(function($) {
     'use strict';
 
+    var changed = [];
+
     // Calculate amount by chunks.
     function chunkize( number, chunk ){
 
@@ -38,6 +40,13 @@ jQuery(document).ready(function($) {
             return this.text(this.text() == b ? a : b);
         }
     });
+
+    // Check if in Array
+    function isInArray( value, array ) {
+
+        return array.indexOf( value ) > -1;
+
+    }
 
     // Calculate Total
     function calc_total() {
@@ -425,6 +434,12 @@ jQuery(document).ready(function($) {
 
                                 if ( first_payment.length ) {
 
+                                    if ( ! isInArray( 0, changed ) ) {
+
+                                        changed.push( 0 );
+
+                                    }
+
                                     $('#is-first-payment-defined').attr('value', 'true');
                                     $('#is-first-payment-defined-value').attr('value', first_payment);
 
@@ -490,6 +505,8 @@ jQuery(document).ready(function($) {
 
                     $('#rc-order-payments-dates').parent().removeClass('hide');
 
+                    $('#payment-method').attr('value', '2');
+
 
             } else {
 
@@ -504,6 +521,59 @@ jQuery(document).ready(function($) {
             }
         });
     }
+
+    function calculateChangedFieldsTotal() {
+
+        var changed_total = 0;
+        $.each( changed, function( key, value ) {
+
+            changed_total = changed_total + Number( $('input[name="payment-price-custom[' + value + ']"]').attr('value') );
+
+        });
+
+        return changed_total;
+
+    }
+
+    $(document).on('input', '.payment-price-custom', function(event) {
+
+        var index = $(this).attr('name'),
+            index = index.replace(/\D/g, '');
+
+        if ( ! isInArray( index, changed ) ) {
+
+            changed.push( index );
+
+        }
+
+        var total = $('#cart-total').attr('value'),
+            changed_payments  = changed.length,
+            total_payments    = $('.payment-price-custom').length;
+
+        var changed_total = calculateChangedFieldsTotal();
+
+        if ( changed_total > total ) {
+
+            swal({
+                type: 'error',
+                text: 'You have entered a value that would in total exceed the total of the cart.'
+            });
+
+            $(this).attr('value', ( Number( changed_total ) - Number( total ) ));
+
+            return;
+
+        }
+
+        var total_to_return = ( Number( total ) - Number( changed_total ) ) / ( Number( total_payments ) - Number( changed_payments ) );
+
+        $('.payment-price-custom').each(function(key, value) {
+            var element_name_index = $(this).attr('name').replace(/\D/g, '');
+            if ( ! isInArray( element_name_index, changed ) ) {
+                $(this).attr('value', total_to_return);
+            }
+        });
+    });
 
     // Remove payment from the "list".
     $(document).on('click', '.remove-payment', function(event) {
@@ -520,6 +590,17 @@ jQuery(document).ready(function($) {
 
             number_of_payments = number_of_payments + 1;
         });
+
+        if ( number_of_payments === 1 ) {
+
+            $('#rc-order-payments-dates > tbody').empty();
+            $('#rc-order-payments-dates').parent().addClass('hide');
+
+            $('#is-first-payment-defined').attr('value', 'false');
+            $('#is-first-payment-defined-value').attr('value', '0');
+            $('#payment-method').attr('value', '1');
+
+        }
 
         var payment = 0;
 
@@ -566,7 +647,7 @@ jQuery(document).ready(function($) {
         });
     });
 
-    $(document).on('click', '.calc', function(event) {
+    $(document).on('click', '.add-order', function(event) {
         event.preventDefault();
 
         var button = $(this),
@@ -629,6 +710,17 @@ jQuery(document).ready(function($) {
             billing_phone: $('#rc-order-billing-phone').val()
         };
 
+        if ( $('#rc-order-shipping-city').val() && $('#rc-order-shipping-address').val() ) {
+
+            user.shipping_country = $('#rc-order-shipping-country').find(':selected').val();
+            user.shipping_address = $('#rc-order-shipping-address').val();
+            user.shipping_city = $('#rc-order-shipping-city').val();
+            user.shipping_state = $('#rc-order-shipping-state').find(':selected').val();
+            user.shipping_postcode = $('#rc-order-shipping-postcode').val();
+            user.shipping_phone = $('#rc-order-shipping-phone').val();
+
+        }
+
         var products = [];
 
         $('#rc-order-products tr').each(function(key, value) {
@@ -661,87 +753,60 @@ jQuery(document).ready(function($) {
             }
         });
 
-        var payment_options = $('select[name="rc-order-payment-type"] option:selected').val(),
+        var payment_method = $('#payment-method').val(),
             payments = {},
-            payment_option = '';
+            payment_method_slug = '';
 
-        if ( payment_options === '0' ) {
-            payment_option = 'full';
+        if ( payment_method === '1' ) {
+            payment_method_slug = 'full';
         }
-        if ( payment_options === '1' ) {
-            payment_option = 'monthly';
-        }
-        if ( payment_options === '2' ) {
-            payment_option = 'custom';
+        if ( payment_method === '2' ) {
+            payment_method_slug = 'monthly';
         }
 
-        if ( payment_options === '1' || payment_options === '2' ) {
+        if ( payment_method === '2' ) {
 
-            if ( payment_options === '2' ) {
+            var fixed_price = 0,
+                fixed_payment = 0;
+            $('#rc-order-products > tbody > tr').each(function(key, value) {
+                fixed_price += Number( $(this).find('.product-total').html() );
+            });
+            $('#rc-order-payments-dates > tbody > tr').each(function(key, value) {
+                fixed_payment += Number( $(this).find('input[name^=payment-price]').val() );
+            });
 
-                var fixed_price = 0,
-                    fixed_payment = 0;
-                $('#rc-order-products > tbody > tr').each(function(key, value) {
-                    fixed_price += Number( $(this).find('.product-total').html() );
-                });
-                $('#rc-order-payments-dates > tbody > tr').each(function(key, value) {
-                    fixed_payment += Number( $(this).find('input[name^=payment-price]').val() );
-                });
+            if ( fixed_price !== fixed_payment ) {
 
-                if ( fixed_price !== fixed_payment ) {
+                console.log( fixed_price );
+                console.log( fixed_payment );
 
-                    console.log( fixed_price );
-                    console.log( fixed_payment );
-
-                    var new_price = 0;
-                    if ( fixed_price > fixed_payment ) {
-                        new_price = fixed_price - fixed_payment;
-                    }
-                    if ( fixed_payment > fixed_price ) {
-                        new_price = fixed_payment - fixed_price;
-                    }
-
-                    $('#rc-order-payments-dates > tbody > tr:last-of-type').find('input[name^=payment-price]').attr( 'value', new_price );
-
+                var new_price = 0;
+                if ( fixed_price > fixed_payment ) {
+                    new_price = fixed_price - fixed_payment;
                 }
+                if ( fixed_payment > fixed_price ) {
+                    new_price = fixed_payment - fixed_price;
+                }
+
+                $('#rc-order-payments-dates > tbody > tr:last-of-type').find('input[name^=payment-price]').attr( 'value', new_price );
 
             }
 
             payments.orders = {};
 
-            if ( payment_options === '1' ) {
+            $('#rc-order-payments-dates > tbody > tr').each(function(key, value) {
+                var input  = $(this).find('input[name="payment-date-custom[' + key + ']"]').pickadate(),
+                    picker = input.pickadate('picker'),
+                    date   = picker.get('select', 'yyyy-mm-dd'),
+                    price  = $(this).find('input[name="payment-price-custom[' + key + ']"]').val();
 
-                $('#rc-order-payments-dates > tbody > tr').each(function(key, value) {
-                    var input  = $(this).find('input[name="payment-date[' + key + ']"]').pickadate(),
-                        picker = input.pickadate('picker'),
-                        date   = picker.get('select', 'yyyy-mm-dd'),
-                        price  = $(this).find('input[name="payment-price[' + key + ']"]').val();
+                var item = {
+                    'order_date': date,
+                    'order_price': price
+                };
 
-                    var item = {
-                        'order_date': date,
-                        'order_price': price
-                    };
-
-                    payments.orders[key] = item;
-                });
-
-            } else {
-
-                $('#rc-order-payments-dates > tbody > tr').each(function(key, value) {
-                    var input  = $(this).find('input[name="payment-date-custom[' + key + ']"]').pickadate(),
-                        picker = input.pickadate('picker'),
-                        date   = picker.get('select', 'yyyy-mm-dd'),
-                        price  = $(this).find('input[name="payment-price-custom[' + key + ']"]').val();
-
-                    var item = {
-                        'order_date': date,
-                        'order_price': price
-                    };
-
-                    payments.orders[key] = item;
-                });
-
-            }
+                payments.orders[key] = item;
+            });
 
         }
 
@@ -752,7 +817,7 @@ jQuery(document).ready(function($) {
             data: {
                 products: products,
                 payments: payments,
-                payment_option: payment_option,
+                payment_method: payment_method,
                 user: user,
                 action: 'rc_ajax_add_to_cart'
             },

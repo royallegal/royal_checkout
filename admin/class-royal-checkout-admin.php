@@ -282,7 +282,7 @@ class Royal_Checkout_Admin {
         // Get the data from ajax.
         $products        = $_POST['products'];
         $payments        = $_POST['payments'];
-        $payments_option = $_POST['payment_option'];
+        $payment_method  = $_POST['payment_method'];
         $user            = $_POST['user'];
 
         // Check if user exists.
@@ -349,6 +349,44 @@ class Royal_Checkout_Admin {
 
                 }
 
+                // Shipping
+
+                if ( isset( $user['shipping_country'] ) && ! empty( $user['shipping_country'] ) ) {
+
+                    update_user_meta( $user_id, 'shipping_country', $user['shipping_country'] );
+
+                }
+
+                if ( isset( $user['shipping_address'] ) && ! empty( $user['shipping_address'] ) ) {
+
+                    update_user_meta( $user_id, 'shipping_address_1', $user['shipping_address'] );
+
+                }
+
+                if ( isset( $user['shipping_city'] ) && ! empty( $user['shipping_city'] ) ) {
+
+                    update_user_meta( $user_id, 'shipping_city', $user['shipping_city'] );
+
+                }
+
+                if ( isset( $user['shipping_state'] ) && ! empty( $user['shipping_state'] ) ) {
+
+                    update_user_meta( $user_id, 'shipping_state', $user['shipping_state'] );
+
+                }
+
+                if ( isset( $user['shipping_postcode'] ) && ! empty( $user['shipping_postcode'] ) ) {
+
+                    update_user_meta( $user_id, 'shipping_postcode', $user['shipping_postcode'] );
+
+                }
+
+                if ( isset( $user['shipping_phone'] ) && ! empty( $user['shipping_phone'] ) ) {
+
+                    update_user_meta( $user_id, 'shipping_phone', $user['shipping_phone'] );
+
+                }
+
             }
 
         }
@@ -393,6 +431,44 @@ class Royal_Checkout_Admin {
 
         }
 
+        // Shipping
+
+        if ( isset( $user['shipping_country'] ) && ! empty( $user['shipping_country'] ) ) {
+
+            $order->set_shipping_country( $user['shipping_country'] );
+
+        }
+
+        if ( isset( $user['shipping_address'] ) && ! empty( $user['shipping_address'] ) ) {
+
+            $order->set_shipping_address_1( $user['shipping_address'] );
+
+        }
+
+        if ( isset( $user['shipping_city'] ) && ! empty( $user['shipping_city'] ) ) {
+
+            $order->set_shipping_city( $user['shipping_city'] );
+
+        }
+
+        if ( isset( $user['shipping_state'] ) && ! empty( $user['shipping_state'] ) ) {
+
+            $order->set_shipping_state( $user['shipping_state'] );
+
+        }
+
+        if ( isset( $user['shipping_postcode'] ) && ! empty( $user['shipping_postcode'] ) ) {
+
+            $order->set_shipping_postcode( $user['shipping_postcode'] );
+
+        }
+
+        if ( isset( $user['shipping_phone'] ) && ! empty( $user['shipping_phone'] ) ) {
+
+            $order->set_shipping_phone( $user['shipping_phone'] );
+
+        }
+
         $count = 0;
         // Add products to the order.
         foreach ( $products as $product ) {
@@ -417,7 +493,7 @@ class Royal_Checkout_Admin {
         }
 
         // Check if payment full or some other (monthly, custom).
-        if ( $payments_option === 'full' ) {
+        if ( $payment_method === 'full' ) {
 
             $order->calculate_totals();
 
@@ -470,8 +546,16 @@ class Royal_Checkout_Admin {
 
             $order->save();
 
+            switch_to_user( $user_id );
+
+            $base_redirect_url = wp_login_url() . '?action=switch_to_user&amp;user_id=' . $user_id . '&amp;nr=1&amp;_wpnonce=' . wp_create_nonce( 'switch_to_user' ) . '&amp;redirect_to=';
+
+            $redirect_url = $order->get_checkout_payment_url();
+
+            //$redirect_url = $base_redirect_url . $redirect_url;
+
             $data['error'] = false;
-            $data['redirect'] = $order->get_checkout_payment_url();
+            $data['redirect'] = $redirect_url;
 
         } else {
 
@@ -555,6 +639,44 @@ class Royal_Checkout_Admin {
             if ( isset( $args['user']['billing_phone'] ) && ! empty( $args['user']['billing_phone'] ) ) {
 
                 $order->set_billing_phone( $args['user']['billing_phone'] );
+
+            }
+
+            // Shipping
+
+            if ( isset( $args['user']['shipping_country'] ) && ! empty( $args['user']['shipping_country'] ) ) {
+
+                $order->set_shipping_country( $args['user']['shipping_country'] );
+
+            }
+
+            if ( isset( $args['user']['shipping_address'] ) && ! empty( $args['user']['shipping_address'] ) ) {
+
+                $order->set_shipping_address_1( $args['user']['shipping_address'] );
+
+            }
+
+            if ( isset( $args['user']['shipping_city'] ) && ! empty( $args['user']['shipping_city'] ) ) {
+
+                $order->set_shipping_city( $args['user']['shipping_city'] );
+
+            }
+
+            if ( isset( $args['user']['shipping_state'] ) && ! empty( $args['user']['shipping_state'] ) ) {
+
+                $order->set_shipping_state( $args['user']['shipping_state'] );
+
+            }
+
+            if ( isset( $args['user']['shipping_postcode'] ) && ! empty( $args['user']['shipping_postcode'] ) ) {
+
+                $order->set_shipping_postcode( $args['user']['shipping_postcode'] );
+
+            }
+
+            if ( isset( $args['user']['shipping_phone'] ) && ! empty( $args['user']['shipping_phone'] ) ) {
+
+                $order->set_shipping_phone( $args['user']['shipping_phone'] );
 
             }
 
