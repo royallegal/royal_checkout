@@ -29,87 +29,87 @@
  */
 class Royal_Checkout {
 
-	/**
-	 * The loader that's responsible for maintaining and registering all hooks that power
-	 * the plugin.
-	 *
-	 * @since    1.0.0
-	 * @access   protected
-	 * @var      Royal_Checkout_Loader    $loader    Maintains and registers all hooks for the plugin.
-	 */
-	protected $loader;
+    /**
+     * The loader that's responsible for maintaining and registering all hooks that power
+     * the plugin.
+     *
+     * @since    1.0.0
+     * @access   protected
+     * @var      Royal_Checkout_Loader    $loader    Maintains and registers all hooks for the plugin.
+     */
+    protected $loader;
 
-	/**
-	 * The unique identifier of this plugin.
-	 *
-	 * @since    1.0.0
-	 * @access   protected
-	 * @var      string    $plugin_name    The string used to uniquely identify this plugin.
-	 */
-	protected $plugin_name;
+    /**
+     * The unique identifier of this plugin.
+     *
+     * @since    1.0.0
+     * @access   protected
+     * @var      string    $plugin_name    The string used to uniquely identify this plugin.
+     */
+    protected $plugin_name;
 
-	/**
-	 * The current version of the plugin.
-	 *
-	 * @since    1.0.0
-	 * @access   protected
-	 * @var      string    $version    The current version of the plugin.
-	 */
-	protected $version;
+    /**
+     * The current version of the plugin.
+     *
+     * @since    1.0.0
+     * @access   protected
+     * @var      string    $version    The current version of the plugin.
+     */
+    protected $version;
 
-	/**
-	 * Define the core functionality of the plugin.
-	 *
-	 * Set the plugin name and the plugin version that can be used throughout the plugin.
-	 * Load the dependencies, define the locale, and set the hooks for the admin area and
-	 * the public-facing side of the site.
-	 *
-	 * @since    1.0.0
-	 */
-	public function __construct() {
-		if ( defined( 'PLUGIN_NAME_VERSION' ) ) {
-			$this->version = PLUGIN_NAME_VERSION;
-		} else {
-			$this->version = '1.0.0';
-		}
-		$this->plugin_name = 'royal-checkout';
+    /**
+     * Define the core functionality of the plugin.
+     *
+     * Set the plugin name and the plugin version that can be used throughout the plugin.
+     * Load the dependencies, define the locale, and set the hooks for the admin area and
+     * the public-facing side of the site.
+     *
+     * @since    1.0.0
+     */
+    public function __construct() {
+        if ( defined( 'PLUGIN_NAME_VERSION' ) ) {
+            $this->version = PLUGIN_NAME_VERSION;
+        } else {
+            $this->version = '1.0.0';
+        }
+        $this->plugin_name = 'royal-checkout';
 
-		$this->load_dependencies();
-		$this->set_locale();
-		$this->define_admin_hooks();
-		$this->define_public_hooks();
+        $this->load_dependencies();
+        $this->set_locale();
+        $this->define_admin_hooks();
+        $this->define_public_hooks();
 
-	}
+    }
 
-	/**
-	 * Load the required dependencies for this plugin.
-	 *
-	 * Include the following files that make up the plugin:
-	 *
-	 * - Royal_Checkout_Loader. Orchestrates the hooks of the plugin.
-	 * - Royal_Checkout_i18n. Defines internationalization functionality.
-	 * - Royal_Checkout_Admin. Defines all hooks for the admin area.
-	 * - Royal_Checkout_Public. Defines all hooks for the public side of the site.
-	 *
-	 * Create an instance of the loader which will be used to register the hooks
-	 * with WordPress.
-	 *
-	 * @since    1.0.0
-	 * @access   private
-	 */
-	private function load_dependencies() {
+    /**
+     * Load the required dependencies for this plugin.
+     *
+     * Include the following files that make up the plugin:
+     *
+     * - Royal_Checkout_Loader. Orchestrates the hooks of the plugin.
+     * - Royal_Checkout_i18n. Defines internationalization functionality.
+     * - Royal_Checkout_Admin. Defines all hooks for the admin area.
+     * - Royal_Checkout_Public. Defines all hooks for the public side of the site.
+     *
+     * Create an instance of the loader which will be used to register the hooks
+     * with WordPress.
+     *
+     * @since    1.0.0
+     * @access   private
+     */
+    private function load_dependencies() {
 
-		/**
-		 * The class responsible for orchestrating the actions and filters of the
-		 * core plugin.
-		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-royal-checkout-loader.php';
+        /**
+         * The class responsible for orchestrating the actions and filters of the
+         * core plugin.
+         */
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-royal-checkout-loader.php';
 
-		/**
-		 * The class responsible for defining internationalization functionality
-		 * of the plugin.
-		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-royal-checkout-i18n.php';
+        /**
+         * The class responsible for defining internationalization functionality
+         * of the plugin.
+         */
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-royal-checkout-i18n.php';
 
         /**
          * The class responsible for composer packages.
@@ -131,121 +131,202 @@ class Royal_Checkout {
          */
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-royal-checkout-products.php';
 
-		/**
-		 * The class responsible for defining all actions that occur in the admin area.
-		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-royal-checkout-admin.php';
+        /**
+         * The class responsible for defining all actions that occur in the admin area.
+         */
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-royal-checkout-admin.php';
 
-		/**
-		 * The class responsible for defining all actions that occur in the public-facing
-		 * side of the site.
-		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-royal-checkout-public.php';
+        /**
+         * The class responsible for defining all actions that occur in the public-facing
+         * side of the site.
+         */
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-royal-checkout-public.php';
 
-		$this->loader = new Royal_Checkout_Loader();
+        $this->loader = new Royal_Checkout_Loader();
 
-	}
+    }
 
-	/**
-	 * Define the locale for this plugin for internationalization.
-	 *
-	 * Uses the Royal_Checkout_i18n class in order to set the domain and to register the hook
-	 * with WordPress.
-	 *
-	 * @since    1.0.0
-	 * @access   private
-	 */
-	private function set_locale() {
+    /**
+     * Define the locale for this plugin for internationalization.
+     *
+     * Uses the Royal_Checkout_i18n class in order to set the domain and to register the hook
+     * with WordPress.
+     *
+     * @since    1.0.0
+     * @access   private
+     */
+    private function set_locale() {
 
-		$plugin_i18n = new Royal_Checkout_i18n();
+        $plugin_i18n = new Royal_Checkout_i18n();
 
-		$this->loader->add_action( 'plugins_loaded', $plugin_i18n, 'load_plugin_textdomain' );
+        $this->loader->add_action( 'plugins_loaded', $plugin_i18n, 'load_plugin_textdomain' );
 
-	}
+    }
 
-	/**
-	 * Register all of the hooks related to the admin area functionality
-	 * of the plugin.
-	 *
-	 * @since    1.0.0
-	 * @access   private
-	 */
-	private function define_admin_hooks() {
+    /**
+     * Register all of the hooks related to the admin area functionality
+     * of the plugin.
+     *
+     * @since    1.0.0
+     * @access   private
+     */
+    private function define_admin_hooks() {
 
-		$plugin_admin = new Royal_Checkout_Admin( $this->get_plugin_name(), $this->get_version() );
+        $plugin_admin = new Royal_Checkout_Admin( $this->get_plugin_name(), $this->get_version() );
 
-		// Enqueue Admin Scripts
-		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
-		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
+        // Enqueue Admin Scripts
+        $this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
+        $this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 
-		// Register Admin Pages
-		$this->loader->add_action( 'admin_menu', $plugin_admin, 'register_admin_pages', 60 );
+        // Register Admin Pages
+        $this->loader->add_action( 'admin_menu', $plugin_admin, 'register_admin_pages', 60 );
 
-		// Ajax Functions
+        // Ajax Functions
         $this->loader->add_action( 'wp_ajax_rc_ajax_get_user', $plugin_admin, 'rc_ajax_get_user' );
         $this->loader->add_action( 'wp_ajax_rc_ajax_get_states', $plugin_admin, 'rc_ajax_get_states' );
-		$this->loader->add_action( 'wp_ajax_rc_ajax_get_products', $plugin_admin, 'rc_ajax_get_products' );
-		$this->loader->add_action( 'wp_ajax_rc_ajax_get_product', $plugin_admin, 'rc_ajax_get_product' );
-		$this->loader->add_action( 'wp_ajax_rc_ajax_add_to_cart', $plugin_admin, 'rc_ajax_add_to_cart' );
+        $this->loader->add_action( 'wp_ajax_rc_ajax_get_products', $plugin_admin, 'rc_ajax_get_products' );
+        $this->loader->add_action( 'wp_ajax_rc_ajax_get_product', $plugin_admin, 'rc_ajax_get_product' );
+        $this->loader->add_action( 'wp_ajax_rc_ajax_add_to_cart', $plugin_admin, 'rc_ajax_add_to_cart' );
 
-		$this->loader->add_action( 'create_new_order', $plugin_admin, 'create_new_order', 10, 2 );
+        $this->loader->add_action( 'create_new_order', $plugin_admin, 'create_new_order', 10, 2 );
 
-	}
+    }
 
-	/**
-	 * Register all of the hooks related to the public-facing functionality
-	 * of the plugin.
-	 *
-	 * @since    1.0.0
-	 * @access   private
-	 */
-	private function define_public_hooks() {
+    /**
+     * Register all of the hooks related to the public-facing functionality
+     * of the plugin.
+     *
+     * @since    1.0.0
+     * @access   private
+     */
+    private function define_public_hooks() {
 
-		$plugin_public = new Royal_Checkout_Public( $this->get_plugin_name(), $this->get_version() );
+        $plugin_public = new Royal_Checkout_Public( $this->get_plugin_name(), $this->get_version() );
 
-		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
-		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
+        $this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
+        $this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
 
-	}
+    }
 
-	/**
-	 * Run the loader to execute all of the hooks with WordPress.
-	 *
-	 * @since    1.0.0
-	 */
-	public function run() {
-		$this->loader->run();
-	}
+    /**
+     * Run the loader to execute all of the hooks with WordPress.
+     *
+     * @since    1.0.0
+     */
+    public function run() {
+        $this->loader->run();
+    }
 
-	/**
-	 * The name of the plugin used to uniquely identify it within the context of
-	 * WordPress and to define internationalization functionality.
-	 *
-	 * @since     1.0.0
-	 * @return    string    The name of the plugin.
-	 */
-	public function get_plugin_name() {
-		return $this->plugin_name;
-	}
+    /**
+     * The name of the plugin used to uniquely identify it within the context of
+     * WordPress and to define internationalization functionality.
+     *
+     * @since     1.0.0
+     * @return    string    The name of the plugin.
+     */
+    public function get_plugin_name() {
+        return $this->plugin_name;
+    }
 
-	/**
-	 * The reference to the class that orchestrates the hooks with the plugin.
-	 *
-	 * @since     1.0.0
-	 * @return    Royal_Checkout_Loader    Orchestrates the hooks of the plugin.
-	 */
-	public function get_loader() {
-		return $this->loader;
-	}
+    /**
+     * The reference to the class that orchestrates the hooks with the plugin.
+     *
+     * @since     1.0.0
+     * @return    Royal_Checkout_Loader    Orchestrates the hooks of the plugin.
+     */
+    public function get_loader() {
+        return $this->loader;
+    }
 
-	/**
-	 * Retrieve the version number of the plugin.
-	 *
-	 * @since     1.0.0
-	 * @return    string    The version number of the plugin.
-	 */
-	public function get_version() {
-		return $this->version;
-	}
+    /**
+     * Retrieve the version number of the plugin.
+     *
+     * @since     1.0.0
+     * @return    string    The version number of the plugin.
+     */
+    public function get_version() {
+        return $this->version;
+    }
+
+
+    public function create_customer($email, $token) {
+        // Create a new customer
+        $customer = \Stripe\Customer::create([
+            'email' => $email,
+            'source' => $token
+        ]);
+
+        return $customer;
+    }
+
+    public function charge_customer($customer_id, $amount) {
+        // Charge the Customer instead of the card:
+        $charge = \Stripe\Charge::create([
+            'amount' => $amount,
+            'currency' => 'usd',
+            'customer' => $customer_id,
+        ]);
+        return $charge;
+    }
+
+    public function save_customer($customer) {
+        global $wpdb;
+        // define the table name
+        $customer_id = $customer->id;
+        $customer_callback = json_encode($customer);
+
+        $table_name = $wpdb->prefix . "royalcheckout_customers";
+        // user wpdb inser function to insert data to the db (id is auto filled and autoincrement)
+
+        $insert = $wpdb->insert( 
+            $table_name, 
+            array( 
+                'stripe_client_id' => $customer_id, 
+                'callback'         => $customer_callback, 
+            ) 
+        );
+
+        // check if the insert was true or false and return
+        if ( $insert )
+            return $wpdb->insert_id;
+        else
+            return false;
+
+    }
+
+    public function schedule_payment($customer, $payment_schedule_date, $payment_amout, $payment_remaining) {
+        global $wpdb;
+
+        $table_name = $wpdb->prefix . "royalcheckout_payments_plan";
+        // user wpdb inser function to insert data to the db (id is auto filled and autoincrement)
+
+        $insert = $wpdb->insert( 
+            $table_name, 
+            array( 
+                'customer'              => $customer, 
+                'payment_schedule_date' => $payment_schedule_date, 
+                'payment_amout'         => $payment_amout, 
+                'payment_remaining'     => $payment_remaining, 
+                'is_payed'              => FALSE
+            ) 
+        );
+
+        // check if the insert was true or false and return
+        if ( $insert )
+            return true;
+        else
+            return false;
+
+    }
+
+    // Cron job: search and charge payments
+    public function search_and_charge($date = NULL) {
+        // If we don't set up the date, the date will be today
+        if ( $date == NULL )
+            $date = date('j F, Y');
+
+        // @TODO
+
+    }
 
 }

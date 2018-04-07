@@ -1,6 +1,12 @@
 jQuery(document).ready(function($) {
     'use strict';
 
+    // function to round, used to get total months based on monthly plan
+    function precisionRound(number, precision) {
+        var factor = Math.pow(10, precision);
+        return Math.round(number * factor) / factor;
+    }
+
     // Calculate amount by chunks.
     function chunkize( number, chunk ){
 
@@ -352,7 +358,6 @@ $("#add-payment").on('click', function(event) {
             preConfirm: function() {
                 var downpayment = $('#downpayment').val(),
                     monthly = $('#monthly-price').val(),
-                    months = $('#number-of-months').val(),
                     errors = '';
 
                 // Downpayment is required.
@@ -362,12 +367,6 @@ $("#add-payment").on('click', function(event) {
 
                 }
 
-                // Either monthly price or number of months must be filled.
-                if (!monthly && !months) {
-
-                    errors += 'Please enter the monthly price.';
-
-                }
 
                 // Display Errors
                 if (errors) {
@@ -381,35 +380,37 @@ $("#add-payment").on('click', function(event) {
                 } else {
 
                     // Get total
-                    var total = regular_products - Number(downpayment),
-                        payments = [],
-                        first_payment = Number(downpayment) + subscription_products;
+                    var payments = [];
+                    var order_total = Number(regular_products+subscription_products);
+                    var first_payment = Number(downpayment);
+                    var monthly_share = monthly;
+                    var total_months;
+                    var remaining_balance;
+                    var round_monthly_share;
+                    var round_total_months;
+                    var __remaining = order_total;
 
-                    // Split payments depending on filled option above.
-                    if (monthly) {
 
-                        payments = chunkize(total, monthly);
-
-                        payments.unshift(first_payment);
-
-                    }
-
-                    if (months) {
-
-                        var payment = total / months;
-
-                        for (var i = 0; i < months; i++) {
-
-                            if (i === months - 1) {
-                                payments.push(total - sum_array(payments));
-                            } else {
-                                payments.push(Math.trunc(payment));
+                    if ( order_total == first_payment ) {
+                        // Will pay all on 1st payment
+                        payments.push(first_payment);
+                    } else {
+                        total_months = (order_total - first_payment) / monthly_share;
+                        remaining_balance = (order_total - first_payment);
+                        round_total_months = precisionRound(total_months, 0);
+                        round_monthly_share = total_months * monthly_share / round_total_months;
+                        payments.push(first_payment);
+                        __remaining-=first_payment;
+                        for (var i = 0; i < round_total_months; i++) {
+                            if ( __remaining < monthly_share )
+                                payments.push(__remaining);
+                            else {
+                                payments.push(monthly_share);
+                                __remaining-=monthly_share;
                             }
-
                         }
-
-                        payments.unshift(first_payment);
-
+                        if ( __remaining > 0 )
+                            payments.push(__remaining);
                     }
 
                     // Append Payments
@@ -418,10 +419,10 @@ $("#add-payment").on('click', function(event) {
                         payments_html += '<tr>';
                         payments_html += '<td><a href="#" class="remove-payment">X</a></td>';
                         payments_html += '<td>';
-                        payments_html += '<div class="input-field"><input type="text" class="datepicker" name="payment-date[' + key + ']" disabled></div>';
+                        payments_html += '<div class="input-field"><input type="text" class="datepicker" name="payment-date[' + key + ']"></div>';
                         payments_html += '</td>';
                         payments_html += '<td>';
-                        payments_html += '<div class="input-field"><input type="number" name="payment-price[' + key + ']" value="' + value + '" disabled></div>';
+                        payments_html += '<div class="input-field"><input type="number" name="payment-price[' + key + ']" value="' + value + '"></div>';
                         payments_html += '</td>';
                         payments_html += '</tr>';
                     });
@@ -903,89 +904,19 @@ $("#add-payment").on('click', function(event) {
             }
         });
 
-        var payment_options = $('select[name="rc-order-payment-type"] option:selected').val(),
-            payments = {},
-            payment_option = '';
+        var payments = {};
 
-        /*if ( payment_options === '0' ) {
-            payment_option = 'full';
-        }
-        if ( payment_options === '1' ) { */
-            payment_option = 'monthly';
-        /*}
-        if ( payment_options === '2' ) {
-            payment_option = 'custom';
-        }*/
-
-        if ( payment_options === '1' || payment_options === '2' ) {
-
-            if ( payment_options === '2' ) {
-
-                var fixed_price = 0,
-                    fixed_payment = 0;
-                $('#rc-order-products > tbody > tr').each(function(key, value) {
-                    fixed_price += Number( $(this).find('.product-total').html() );
-                });
-                $('#rc-order-payments-dates > tbody > tr').each(function(key, value) {
-                    fixed_payment += Number( $(this).find('input[name^=payment-price]').val() );
-                });
-
-                if ( fixed_price !== fixed_payment ) {
-
-                    console.log( fixed_price );
-                    console.log( fixed_payment );
-
-                    var new_price = 0;
-                    if ( fixed_price > fixed_payment ) {
-                        new_price = fixed_price - fixed_payment;
-                    }
-                    if ( fixed_payment > fixed_price ) {
-                        new_price = fixed_payment - fixed_price;
-                    }
-
-                    $('#rc-order-payments-dates > tbody > tr:last-of-type').find('input[name^=payment-price]').attr( 'value', new_price );
-
-                }
-
-            }
-
-            payments.orders = {};
-
-            if ( payment_options === '1' ) {
-
-                $('#rc-order-payments-dates > tbody > tr').each(function(key, value) {
-                    var input  = $(this).find('input[name="payment-date[' + key + ']"]').pickadate(),
-                        picker = input.pickadate('picker'),
-                        date   = picker.get('select', 'yyyy-mm-dd'),
-                        price  = $(this).find('input[name="payment-price[' + key + ']"]').val();
-
-                    var item = {
-                        'order_date': date,
-                        'order_price': price
-                    };
-
-                    payments.orders[key] = item;
-                });
-
-            } else {
-
-                $('#rc-order-payments-dates > tbody > tr').each(function(key, value) {
-                    var input  = $(this).find('input[name="payment-date-custom[' + key + ']"]').pickadate(),
-                        picker = input.pickadate('picker'),
-                        date   = picker.get('select', 'yyyy-mm-dd'),
-                        price  = $(this).find('input[name="payment-price-custom[' + key + ']"]').val();
-
-                    var item = {
-                        'order_date': date,
-                        'order_price': price
-                    };
-
-                    payments.orders[key] = item;
-                });
-
-            }
-
-        }
+        $('#rc-order-payments-dates > tbody > tr').each(function(key, value) {
+            var $input = $(this).find('input[name="payment-date[' + key + ']"]').pickadate(),
+                picker = $input.pickadate('picker'),
+                date = picker.get(),
+                price = $(this).find('input[name="payment-price[' + key + ']"]').val(),
+                item = {
+                    'order_date': date,
+                    'order_price': price
+                };
+                payments[key] = item;
+        });
 
         $.ajax({
             url: ajaxurl,
@@ -994,7 +925,6 @@ $("#add-payment").on('click', function(event) {
             data: {
                 products: products,
                 payments: payments,
-                payment_option: payment_option,
                 user: user,
                 action: 'rc_ajax_add_to_cart'
             },

@@ -146,6 +146,15 @@ class Royal_Checkout_Admin {
             [ $this, 'display_new_order_page' ]
         );
 
+        add_submenu_page(
+            null,
+            esc_html__( 'Pay RC Order', 'royal-checkout' ),
+            esc_html__( 'Pay RC Order', 'royal-checkout' ),
+            'manage_options',
+            'rc-pay-order',
+            [ $this, 'display_pay_order_page' ]
+        );
+
     }
 
     /**
@@ -157,6 +166,18 @@ class Royal_Checkout_Admin {
     public function display_new_order_page() {
 
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/partials/royal-checkout-admin-new-order-display.php';
+
+    }
+
+    /**
+     * Display our Pay Order page.
+     *
+     * @since    1.0.0
+     * @version  1.0.0
+     */
+    public function display_pay_order_page() {
+
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/partials/royal-checkout-admin-pay-order-display.php';
 
     }
 
@@ -484,10 +505,11 @@ class Royal_Checkout_Admin {
         if ( $count > 0 ) {
 
             $order->set_status("unpaid");
+            $order->update_meta_data("payment", json_encode($payments));
             $order->save();
 
             $data['error'] = false;
-            $data['redirect'] = $order->get_checkout_payment_url();
+            $data['redirect'] = get_site_url() . "/wp-admin/admin.php?page=rc-pay-order&order_id=" . $order->get_order_number();
 
         } else {
 
