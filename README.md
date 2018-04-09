@@ -2,6 +2,7 @@
 
 ## Installation
 * Run `npm install`
+* Run `composer install`
 
 You can use following commands:
 * `npm run dev` - Runs once and it compiles everything.
