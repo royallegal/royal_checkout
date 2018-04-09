@@ -16,3 +16,4 @@ mix.copy('dev/css/select2-materialize.css', 'admin/css/select2-materialize.css')
 mix.copy('node_modules/sweetalert2/dist/sweetalert2.min.js', 'admin/js/sweetalert2.min.js');
 mix.copy('node_modules/sweetalert2/dist/sweetalert2.min.css', 'admin/css/sweetalert2.min.css');
 mix.copy('node_modules/moment/min/moment.min.js', 'admin/js/moment.min.js');
+mix.copy('node_modules/materialize-css/dist/fonts', 'admin/fonts');

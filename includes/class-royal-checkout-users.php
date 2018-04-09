@@ -85,10 +85,26 @@ class Royal_Checkout_Users {
      * @version    1.0.0
      * @return     array $data_to_return
      */
-    public static function get_users() {
+    public static function get_users( $search ) {
 
         $data = new WP_User_Query([
+            'order'          => 'ASC',
+            'orderby'        => 'display_name',
+            'search'         => '*' . $search . '*' ,
             'number'         => 999999,
+            'meta_query'     => [
+                'relation' => 'OR',
+                [
+                    'key'     => 'first_name',
+                    'value'   => $search,
+                    'compare' => 'LIKE'
+                ],
+                [
+                    'key'     => 'last_name',
+                    'value'   => $search,
+                    'compare' => 'LIKE'
+                ]
+            ]
         ]);
 
         $data = $data->get_results();
@@ -100,10 +116,9 @@ class Royal_Checkout_Users {
             $author_info = get_userdata( $author->ID );
 
             $data_to_return[$author->ID] = [
-                $author->user_email,
-                $author_info->first_name,
-                $author_info->last_name,
-                $author->ID
+                'user_email' => $author->user_email,
+                'user_first_and_last_name' => $author_info->first_name . ' ' . $author_info->last_name,
+                'user_id' => $author->ID
             ];
 
         }

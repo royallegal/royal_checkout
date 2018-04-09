@@ -127,9 +127,39 @@ jQuery(document).ready(function($) {
     // Choose Customer
     if ( $('#rc-order-customer-email').length ) {
         $('#rc-order-customer-email').select2({
-            placeholder: 'Find a User',
-            allowClear: true,
-            tags: true
+          placeholder: 'Find a User',
+          ajax: {
+            url: ajaxurl,
+            dataType: 'JSON',
+            type: 'POST',
+            cache: true,
+            delay: 250,
+            data: function(params) {
+              return {
+                search: params.term,
+                action: 'rc_ajax_search_users'
+              };
+            },
+            processResults: function(data) {
+              var options = [];
+
+              if ( data ) {
+                $.each(data, function(k, v) {
+                  options.push({
+                    id: v.user_email,
+                    text: v.user_email
+                  });
+                });
+              }
+
+              return {
+                results: options
+              };
+            }
+          },
+          minimumInputLength: 3,
+          tags: false,
+          allowClear: true
         });
 
         $('#rc-order-customer-email').on('select2:select', function(event) {
@@ -755,13 +785,15 @@ jQuery(document).ready(function($) {
 
         var payment_method = $('#payment-method').val(),
             payments = {},
-            payment_method_slug = '';
+            payment_method_slug = '',
+            payment_redirect_url_append = '';
 
         if ( payment_method === '1' ) {
             payment_method_slug = 'full';
         }
         if ( payment_method === '2' ) {
             payment_method_slug = 'monthly';
+            payment_redirect_url_append = '&monthly=true&first_payment=true';
         }
 
         if ( payment_method === '2' ) {
@@ -776,9 +808,6 @@ jQuery(document).ready(function($) {
             });
 
             if ( fixed_price !== fixed_payment ) {
-
-                console.log( fixed_price );
-                console.log( fixed_payment );
 
                 var new_price = 0;
                 if ( fixed_price > fixed_payment ) {
@@ -817,7 +846,7 @@ jQuery(document).ready(function($) {
             data: {
                 products: products,
                 payments: payments,
-                payment_method: payment_method,
+                payment_method: payment_method_slug,
                 user: user,
                 action: 'rc_ajax_add_to_cart'
             },
@@ -828,7 +857,7 @@ jQuery(document).ready(function($) {
             success: function(response) {
                 if ( response.error === false ) {
 
-                    window.open( response.redirect, '_blank' );
+                    window.open( response.redirect + payment_redirect_url_append );
 
                     // Reset everything
                     location.reload();

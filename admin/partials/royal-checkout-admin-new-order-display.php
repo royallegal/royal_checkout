@@ -12,13 +12,7 @@
                             <label for="rc-order-customer-email"><?php esc_html_e( 'Email', 'royal-checkout' ); ?></label>
                             <select name="rc-order-customer-email" id="rc-order-customer-email">
                                 <?php
-                                    $users = $this->users->get_users();
                                     echo '<option></option>';
-                                    foreach ( $users as $user ) {
-
-                                        echo '<option value="' . esc_attr( $user[0] ) . '" data-user-id="' . esc_attr( $user[3] ) . '">' . esc_html( $user[0] ) . '</option>';
-
-                                    }
                                 ?>
                             </select>
                         </div>

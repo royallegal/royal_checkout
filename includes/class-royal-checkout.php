@@ -182,6 +182,7 @@ class Royal_Checkout {
 		$this->loader->add_action( 'admin_menu', $plugin_admin, 'register_admin_pages', 60 );
 
 		// Ajax Functions
+        $this->loader->add_action( 'wp_ajax_rc_ajax_search_users', $plugin_admin, 'rc_ajax_search_users' );
         $this->loader->add_action( 'wp_ajax_rc_ajax_get_user', $plugin_admin, 'rc_ajax_get_user' );
         $this->loader->add_action( 'wp_ajax_rc_ajax_get_states', $plugin_admin, 'rc_ajax_get_states' );
 		$this->loader->add_action( 'wp_ajax_rc_ajax_get_products', $plugin_admin, 'rc_ajax_get_products' );

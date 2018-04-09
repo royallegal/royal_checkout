@@ -492,7 +492,7 @@ class Royal_Checkout_Admin {
 
         }
 
-        // Check if payment full or some other (monthly, custom).
+        // Check if payment full or some monthly.
         if ( $payment_method === 'full' ) {
 
             $order->calculate_totals();
@@ -546,13 +546,12 @@ class Royal_Checkout_Admin {
 
             $order->save();
 
+            update_post_meta( $order->get_id(), 'rc_order_products', $products );
+            update_post_meta( $order->get_id(), 'rc_order_payments', $payments );
+
             switch_to_user( $user_id );
 
-            $base_redirect_url = wp_login_url() . '?action=switch_to_user&amp;user_id=' . $user_id . '&amp;nr=1&amp;_wpnonce=' . wp_create_nonce( 'switch_to_user' ) . '&amp;redirect_to=';
-
             $redirect_url = $order->get_checkout_payment_url();
-
-            //$redirect_url = $base_redirect_url . $redirect_url;
 
             $data['error'] = false;
             $data['redirect'] = $redirect_url;
@@ -683,6 +682,26 @@ class Royal_Checkout_Admin {
             $order->save();
 
         }
+
+    }
+
+    public function rc_ajax_search_users() {
+
+        $data = $this->gump->sanitize( $_POST );
+
+        $this->gump->validation_rules([
+            'search' => 'required|min_len,3'
+        ]);
+
+        $this->gump->filter_rules([
+            'search' => 'trim'
+        ]);
+
+        $data = $this->gump->run( $data );
+
+        $data = $this->users->get_users( $data['search'] );
+
+        wp_send_json( $data );
 
     }
 
