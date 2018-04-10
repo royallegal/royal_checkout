@@ -126,6 +126,7 @@ jQuery(document).ready(function($) {
 
     // Choose Customer
     if ( $('#rc-order-customer-email').length ) {
+        var new_user_email = '';
         $('#rc-order-customer-email').select2({
           placeholder: 'Find a User',
           ajax: {
@@ -135,6 +136,7 @@ jQuery(document).ready(function($) {
             cache: true,
             delay: 250,
             data: function(params) {
+                new_user_email = params.term;
               return {
                 search: params.term,
                 action: 'rc_ajax_search_users'
@@ -143,12 +145,17 @@ jQuery(document).ready(function($) {
             processResults: function(data) {
               var options = [];
 
-              if ( data ) {
+              if ( ! Array.isArray( data ) ) {
                 $.each(data, function(k, v) {
                   options.push({
                     id: v.user_email,
                     text: v.user_email
                   });
+                });
+              } else {
+                options.push({
+                    id: new_user_email,
+                    text: new_user_email
                 });
               }
 
@@ -178,19 +185,31 @@ jQuery(document).ready(function($) {
                         action: 'rc_ajax_get_user'
                     },
                     success: function(response) {
-                        $('#rc-order-customer-first-name').val( response.first_name );
-                        $('#rc-order-customer-last-name').val( response.last_name );
-                        $('#rc-order-billing-address').val( response.billing_address );
-                        $('#rc-order-billing-city').val( response.billing_city );
-                        $('#rc-order-billing-postcode').val( response.billing_postcode );
-                        $('#rc-order-billing-phone').val( response.billing_phone );
-                        $('#rc-order-billing-country').val( response.billing_country ).trigger('change');
+                        $('#rc-order-customer-first-name').attr( 'value', response.first_name );
+                        $('#rc-order-customer-last-name').attr( 'value', response.last_name );
+                        $('#rc-order-billing-address').attr( 'value', response.billing_address );
+                        $('#rc-order-billing-city').attr( 'value', response.billing_city );
+                        $('#rc-order-billing-postcode').attr( 'value', response.billing_postcode );
+                        $('#rc-order-billing-phone').attr( 'value', response.billing_phone );
+                        $('#rc-order-billing-country').attr( 'value', response.billing_country ).trigger('change');
 
-                        $('#rc-order-shipping-address').val( response.shipping_address );
-                        $('#rc-order-shipping-city').val( response.shipping_city );
-                        $('#rc-order-shipping-postcode').val( response.shipping_postcode );
-                        $('#rc-order-shipping-phone').val( response.shipping_phone );
-                        $('#rc-order-shipping-country').val( response.shipping_country ).trigger('change');
+                        $('#rc-order-shipping-address').attr( 'value', response.shipping_address );
+                        $('#rc-order-shipping-city').attr( 'value', response.shipping_city );
+                        $('#rc-order-shipping-postcode').attr( 'value', response.shipping_postcode );
+                        $('#rc-order-shipping-phone').attr( 'value', response.shipping_phone );
+                        $('#rc-order-shipping-country').attr( 'value', response.shipping_country ).trigger('change');
+
+                        // Check if false
+                        $('input[id^=rc-order-billing-').each(function() {
+                            if ( $(this).val() === 'false' ) {
+                                $(this).attr('value', '');
+                            }
+                        });
+                        $('input[id^=rc-order-shipping-').each(function() {
+                            if ( $(this).val() === 'false' ) {
+                                $(this).attr('value', '');
+                            }
+                        });
 
                         var billing_state = response.billing_state,
                             shipping_state = response.shipping_state;
